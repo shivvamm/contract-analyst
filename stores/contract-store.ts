@@ -138,7 +138,7 @@ const originalGetState = storeImpl.getState.bind(storeImpl);
 const liveProxy = new Proxy({} as ContractStore, {
   get(_target, prop: string | symbol) {
     const current = originalGetState();
-    const value = (current as Record<string | symbol, unknown>)[prop];
+    const value = (current as unknown as Record<string | symbol, unknown>)[prop];
     // Return functions bound to the store, data properties from current state
     if (typeof value === "function") {
       return value;
