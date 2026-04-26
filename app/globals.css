@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@theme {
+  /* Miro-inspired color tokens */
+  --color-near-black: #1c1c1e;
+  --color-surface: #ffffff;
+  --color-blue-450: #5b76fe;
+  --color-blue-pressed: #2a41b6;
+  --color-success: #00b473;
+  --color-slate: #555a6a;
+  --color-placeholder: #a5a8b5;
+  --color-border: #c7cad5;
+  --color-ring: rgb(224, 226, 232);
+  --color-input-border: #e9eaef;
+
+  /* Pastel section backgrounds */
+  --color-teal-light: #c3faf5;
+  --color-teal-dark: #187574;
+  --color-coral-light: #ffc6c6;
+  --color-coral-dark: #600000;
+  --color-orange-light: #ffe6cd;
+  --color-yellow-dark: #746019;
+  --color-pink-light: #fde0f0;
+  --color-red-light: #fbd4d4;
+
+  /* Radius scale */
+  --radius-button: 8px;
+  --radius-card: 12px;
+  --radius-panel: 20px;
+  --radius-container: 24px;
+  --radius-large: 40px;
+  --radius-pill: 50px;
+
+  /* Font families */
+  --font-display: "Roobert PRO Medium", sans-serif;
+  --font-display-semibold: "Roobert PRO SemiBold", sans-serif;
+  --font-body: "Noto Sans", sans-serif;
+}
+
+/* Ring shadow utility */
+.ring-miro {
+  box-shadow: rgb(224, 226, 232) 0px 0px 0px 1px;
+}
+
+/* OpenType features for Roobert PRO */
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+/* OpenType features for Noto Sans */
+.font-body {
+  font-family: var(--font-body);
+  font-feature-settings: "liga" 0, "ss01", "ss04", "ss05";
+}
+
+/* Typography scale */
+.text-hero {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -1.68px;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-section {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -1.44px;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-card-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.72px;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-subheading {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.44px;
+  font-feature-settings: "liga" 0, "ss01", "ss04", "ss05";
+}
+
+.text-feature {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-body-lg {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.45;
+  font-feature-settings: "liga" 0, "ss01", "ss04", "ss05";
+}
+
+.text-body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.50;
+  letter-spacing: -0.16px;
+  font-feature-settings: "liga" 0, "ss01", "ss04", "ss05";
+}
+
+.text-button {
+  font-family: var(--font-display);
+  font-size: 17.5px;
+  font-weight: 700;
+  line-height: 1.29;
+  letter-spacing: 0.175px;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-caption {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.71;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-small {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.36px;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
+
+.text-micro {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 0.90;
+  text-transform: uppercase;
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+}
