@@ -5,9 +5,8 @@ export interface PdfParseResult {
 }
 
 export async function parsePdf(buffer: Buffer): Promise<PdfParseResult> {
-  // Dynamic import to avoid side effects at module load time
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
+  const pdfParse = require("pdf-parse/lib/pdf-parse") as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
   const data = await pdfParse(buffer);
   const pageTexts: string[] = [];
   const pages = data.text.split(/\f/);

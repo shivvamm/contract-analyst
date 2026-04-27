@@ -61,8 +61,12 @@ export async function POST(request: NextRequest) {
         controller.enqueue(new TextEncoder().encode(sseEvent("complete", {})));
       } catch (err) {
         const message = err instanceof Error ? err.message : "Analysis failed";
-        const isRateLimit = message.includes("429") || message.toLowerCase().includes("rate limit") || message.toLowerCase().includes("quota");
-        controller.enqueue(new TextEncoder().encode(sseEvent("error", { message: isRateLimit ? "Free tier limit reached. Add your own Gemini API key to continue." : message, isRateLimit })));
+        const isRateLimit = message.includes("429") || message.toLowerCase().includes("rate limit") || message.toLowerCase().includes("quota") || message.toLowerCase().includes("resource_exhausted");
+        const isDailyLimit = message.toLowerCase().includes("per day") || message.includes("limit: 0");
+        const rateLimitMsg = isDailyLimit
+          ? "Daily API quota exhausted. Generate a new API key at aistudio.google.com/apikeys or wait until tomorrow."
+          : "Rate limit reached. Please wait a minute and try again, or add your own Gemini API key.";
+        controller.enqueue(new TextEncoder().encode(sseEvent("error", { message: isRateLimit ? rateLimitMsg : message, isRateLimit })));
       } finally {
         controller.close();
       }

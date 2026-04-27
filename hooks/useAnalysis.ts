@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useContractStore } from "@/stores/contract-store";
-import { detectFileType } from "@/lib/parsers";
+import { detectFileType } from "@/lib/parsers/detect-file-type";
 import type {
   AnalyzeSSEEvent,
   Contract,

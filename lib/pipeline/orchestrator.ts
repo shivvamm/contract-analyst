@@ -23,37 +23,54 @@ export interface PipelineCallbacks {
   onSuggestedQuestions: (questions: string[]) => void;
 }
 
+const FREE_TIER_DELAY_MS = 5000;
+
+function isRateLimitError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes("429") || msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("quota") || msg.toLowerCase().includes("resource has been exhausted");
+}
+
+async function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 export async function runPipeline(
   chunks: ContractChunk[],
   language: string,
   callbacks: PipelineCallbacks,
   userApiKey?: string,
-  retries: number = 2
+  retries: number = 3
 ): Promise<void> {
+  const usingFreeTier = !userApiKey;
+
   callbacks.onProgress("extracting", 10);
 
-  // Pass 1 and Pass 2 run in parallel
-  const [keyTerms, risksResult] = await Promise.all([
-    retryable(
-      () => generateJSON<KeyTerms>(buildExtractionPrompt(chunks, language), userApiKey),
-      retries
-    ),
-    retryable(
-      () => generateJSON<{ risks: Risk[] }>(buildRiskPrompt(chunks, language), userApiKey),
-      retries
-    ),
-  ]);
+  // Pass 1: Key Terms Extraction
+  const keyTerms = await retryable(
+    () => generateJSON<KeyTerms>(buildExtractionPrompt(chunks, language), userApiKey),
+    retries
+  );
 
   callbacks.onExtraction(keyTerms);
-  callbacks.onProgress("analyzing-risks", 40);
+  callbacks.onProgress("analyzing-risks", 30);
+
+  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+
+  // Pass 2: Risk Analysis
+  const risksResult = await retryable(
+    () => generateJSON<{ risks: Risk[] }>(buildRiskPrompt(chunks, language), userApiKey),
+    retries
+  );
 
   callbacks.onRisks(risksResult.risks);
-  callbacks.onProgress("checking-compliance", 55);
+  callbacks.onProgress("checking-compliance", 50);
+
+  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
 
   const keyTermsJson = JSON.stringify(keyTerms);
   const risksJson = JSON.stringify(risksResult.risks);
 
-  // Pass 3: depends on Pass 1
+  // Pass 3: Compliance Check
   const complianceResult = await retryable(
     () => generateJSON<{ compliance: ComplianceFinding[] }>(
       buildCompliancePrompt(chunks, keyTermsJson, language), userApiKey
@@ -62,9 +79,11 @@ export async function runPipeline(
   );
 
   callbacks.onCompliance(complianceResult.compliance);
-  callbacks.onProgress("summarizing", 75);
+  callbacks.onProgress("summarizing", 70);
 
-  // Pass 4: depends on Pass 1 + 2
+  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+
+  // Pass 4: Summary
   const summary = await retryable(
     () => generateJSON<ContractSummary>(
       buildSummaryPrompt(chunks, keyTermsJson, risksJson, language), userApiKey
@@ -75,6 +94,9 @@ export async function runPipeline(
   callbacks.onSummary(summary);
   callbacks.onProgress("generating-questions", 90);
 
+  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+
+  // Pass 5: Suggested Questions
   const questions = await retryable(
     () => generateJSON<string[]>(
       buildSuggestedQuestionsPrompt(keyTermsJson, risksJson, language), userApiKey
@@ -94,7 +116,10 @@ async function retryable<T>(fn: () => Promise<T>, maxRetries: number): Promise<T
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
       if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        const backoff = isRateLimitError(err)
+          ? 15000 * (attempt + 1)
+          : 2000 * (attempt + 1);
+        await delay(backoff);
       }
     }
   }

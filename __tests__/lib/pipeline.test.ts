@@ -57,7 +57,7 @@ describe("runPipeline", () => {
       onSuggestedQuestions: vi.fn(),
     };
 
-    await runPipeline(mockChunks, "English", callbacks);
+    await runPipeline(mockChunks, "English", callbacks, "test-key");
 
     expect(callbacks.onProgress).toHaveBeenCalledWith("extracting", 10);
     expect(callbacks.onExtraction).toHaveBeenCalledWith(mockKeyTerms);
