@@ -80,11 +80,13 @@ export function ContractSidebar({
   if (contracts.length === 0) return null;
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-surface border-r border-border h-full overflow-y-auto">
-      <div className="p-3">
-        <p className="text-micro text-placeholder uppercase tracking-wide mb-2 px-1">
+    <aside className="w-56 flex-shrink-0 bg-surface border-r border-border flex flex-col">
+      <div className="flex-shrink-0 px-4 pt-3 pb-2">
+        <p className="text-micro text-placeholder uppercase tracking-wide px-1">
           {isCompareMode ? "Select to Compare" : "Contracts"}
         </p>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
         <div className="space-y-0.5">
           {contracts.map((contract) => (
             <div key={contract.id} className="relative group/item">

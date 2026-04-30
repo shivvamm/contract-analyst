@@ -67,7 +67,7 @@ export function ChatSidebar({ contractId, isOpen, onToggle }: ChatSidebarProps) 
   }
 
   return (
-    <div className="fixed top-0 right-0 h-full w-96 bg-surface border-l border-border flex flex-col z-40 shadow-xl">
+    <div className="w-96 flex-shrink-0 bg-surface border-l border-border flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-2">

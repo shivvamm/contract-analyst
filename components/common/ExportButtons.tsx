@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useContractStore } from "@/stores/contract-store";
 
 interface ExportButtonsProps {
   contractId: string;
@@ -10,11 +11,24 @@ type ExportFormat = "pdf" | "excel" | "csv";
 
 export function ExportButtons({ contractId }: ExportButtonsProps) {
   const [loading, setLoading] = useState<ExportFormat | null>(null);
+  const { contracts } = useContractStore();
 
   async function handleExport(format: ExportFormat) {
+    const contract = contracts.find((c) => c.id === contractId);
+    if (!contract || contract.analysis.status !== "complete") return;
+
     setLoading(format);
     try {
-      const response = await fetch(`/api/export?contractId=${contractId}&format=${format}`);
+      const response = await fetch("/api/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          format: format === "excel" ? "xlsx" : format,
+          fileName: contract.fileName,
+          analysis: contract.analysis,
+          pageCount: contract.pageCount,
+        }),
+      });
       if (!response.ok) {
         throw new Error(`Export failed: ${response.statusText}`);
       }
@@ -24,7 +38,7 @@ export function ExportButtons({ contractId }: ExportButtonsProps) {
       const a = document.createElement("a");
       a.href = url;
       const ext = format === "excel" ? "xlsx" : format;
-      a.download = `contract-analysis-${contractId}.${ext}`;
+      a.download = `${contract.fileName}-analysis.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

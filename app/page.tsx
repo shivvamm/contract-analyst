@@ -225,7 +225,7 @@ export default function Home() {
 
   // ——— ANALYSIS VIEW ———
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       <DisclaimerDialog />
 
       {activeContract && (
@@ -240,7 +240,7 @@ export default function Home() {
         />
       )}
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         {/* Left sidebar — only when > 1 contract */}
         {contracts.length > 1 && (
           <ContractSidebar
@@ -251,11 +251,7 @@ export default function Home() {
         )}
 
         {/* Main content */}
-        <main
-          className={`flex-1 overflow-y-auto p-6 transition-all ${
-            isChatOpen ? "mr-96" : ""
-          }`}
-        >
+        <main className="flex-1 min-w-0 overflow-y-auto p-6">
           {/* Compare mode toolbar */}
           {isCompareMode && (
             <div className="mb-4 flex items-center gap-3 bg-blue-450/10 border border-blue-450/30 rounded-[var(--radius-card)] px-4 py-3">
