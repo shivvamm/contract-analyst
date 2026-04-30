@@ -27,6 +27,12 @@ export async function POST(request: NextRequest) {
             controller.close();
             return;
           }
+          const MAX_FILE_SIZE = 20 * 1024 * 1024;
+          if (file.size > MAX_FILE_SIZE) {
+            controller.enqueue(new TextEncoder().encode(sseEvent("error", { message: "File exceeds 20 MB limit. Please upload a smaller file." })));
+            controller.close();
+            return;
+          }
           const buffer = Buffer.from(await file.arrayBuffer());
           controller.enqueue(new TextEncoder().encode(sseEvent("progress", { stage: "parsing", percent: 5 })));
           const parseResult = await parseFile(buffer, file.name, file.type);

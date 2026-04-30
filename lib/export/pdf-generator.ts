@@ -78,7 +78,8 @@ function addSummarySection(doc: jsPDF, summary: ContractSummary, y: number): num
   y += lines.length * 6 + 5;
 
   doc.setFontSize(11);
-  for (const bullet of summary.layer2) {
+  const bullets = Array.isArray(summary.layer2) ? summary.layer2 : [];
+  for (const bullet of bullets) {
     y = checkPageBreak(doc, y, 10);
     const bulletLines = doc.splitTextToSize(`• ${bullet}`, 165);
     doc.text(bulletLines, 25, y);

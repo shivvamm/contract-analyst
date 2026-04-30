@@ -41,8 +41,9 @@ export function generateExcelReport(
     XLSX.utils.book_append_sheet(wb, termsSheet, "Key Terms");
   }
 
-  if (analysis.risks.length > 0) {
-    const risksData = analysis.risks.map((r) => ({
+  const risks = Array.isArray(analysis.risks) ? analysis.risks : [];
+  if (risks.length > 0) {
+    const risksData = risks.map((r) => ({
       Severity: r.severity.toUpperCase(), Title: r.title, Description: r.description,
       Category: r.category, Clause: r.clause, Page: r.pageNumber?.toString() || "",
     }));
@@ -50,8 +51,9 @@ export function generateExcelReport(
     XLSX.utils.book_append_sheet(wb, risksSheet, "Risks");
   }
 
-  if (analysis.compliance.length > 0) {
-    const complianceData = analysis.compliance.map((c) => ({
+  const compliance = Array.isArray(analysis.compliance) ? analysis.compliance : [];
+  if (compliance.length > 0) {
+    const complianceData = compliance.map((c) => ({
       Status: c.status.toUpperCase(), Title: c.title, Description: c.description,
       Standard: c.standard, Clause: c.clause || "", Page: c.pageNumber?.toString() || "",
     }));
@@ -69,13 +71,15 @@ export function generateCsvReport(
 ): Buffer {
   const rows: Record<string, string>[] = [];
 
-  for (const risk of analysis.risks) {
+  const csvRisks = Array.isArray(analysis.risks) ? analysis.risks : [];
+  for (const risk of csvRisks) {
     rows.push({
       Type: "Risk", Severity: risk.severity, Title: risk.title,
       Description: risk.description, Clause: risk.clause, Page: risk.pageNumber?.toString() || "",
     });
   }
-  for (const finding of analysis.compliance) {
+  const csvCompliance = Array.isArray(analysis.compliance) ? analysis.compliance : [];
+  for (const finding of csvCompliance) {
     rows.push({
       Type: "Compliance", Severity: finding.status, Title: finding.title,
       Description: finding.description, Clause: finding.clause || "", Page: finding.pageNumber?.toString() || "",

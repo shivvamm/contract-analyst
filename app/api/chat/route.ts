@@ -9,8 +9,20 @@ function sseEvent(type: string, data: unknown): string {
 export async function POST(request: NextRequest) {
   const userApiKey = request.headers.get("x-gemini-api-key") || undefined;
   const language = request.headers.get("x-output-language") || "English";
-  const body = await request.json();
-  const { question, contractText, analysisContext, chatHistory } = body;
+
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const { question, contractText, analysisContext, chatHistory } = body as {
+    question?: string;
+    contractText?: string;
+    analysisContext?: string;
+    chatHistory?: string;
+  };
 
   if (!question || !contractText) {
     return Response.json({ error: "Question and contract text are required" }, { status: 400 });

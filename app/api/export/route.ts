@@ -12,7 +12,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Format and analysis data required" }, { status: 400 });
     }
 
-    const typedAnalysis = analysis as ContractAnalysis;
+    const typedAnalysis: ContractAnalysis = {
+      ...(analysis as ContractAnalysis),
+      risks: Array.isArray(analysis.risks) ? analysis.risks : [],
+      compliance: Array.isArray(analysis.compliance) ? analysis.compliance : [],
+      summary: analysis.summary ?? null,
+      keyTerms: analysis.keyTerms ?? null,
+      error: analysis.error ?? null,
+    };
 
     switch (format) {
       case "pdf": {

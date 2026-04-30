@@ -69,13 +69,14 @@ export async function runPipeline(
     retries
   );
 
-  callbacks.onRisks(risksResult.risks);
+  const risks = Array.isArray(risksResult?.risks) ? risksResult.risks : [];
+  callbacks.onRisks(risks);
   callbacks.onProgress("checking-compliance", 50);
 
   if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 
   const keyTermsJson = JSON.stringify(keyTerms);
-  const risksJson = JSON.stringify(risksResult.risks);
+  const risksJson = JSON.stringify(risks);
 
   // Pass 3: Compliance Check
   const complianceResult = await retryable(
@@ -85,7 +86,8 @@ export async function runPipeline(
     retries
   );
 
-  callbacks.onCompliance(complianceResult.compliance);
+  const compliance = Array.isArray(complianceResult?.compliance) ? complianceResult.compliance : [];
+  callbacks.onCompliance(compliance);
   callbacks.onProgress("summarizing", 70);
 
   if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
@@ -111,7 +113,8 @@ export async function runPipeline(
     retries
   );
 
-  callbacks.onSuggestedQuestions(questions);
+  const safeQuestions = Array.isArray(questions) ? questions : [];
+  callbacks.onSuggestedQuestions(safeQuestions);
   callbacks.onProgress("complete", 100);
 }
 

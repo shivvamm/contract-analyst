@@ -7,7 +7,16 @@ export interface PdfParseResult {
 export async function parsePdf(buffer: Buffer): Promise<PdfParseResult> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pdfParse = require("pdf-parse/lib/pdf-parse") as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
-  const data = await pdfParse(buffer);
+  let data: { text: string; numpages: number };
+  try {
+    data = await pdfParse(buffer);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.toLowerCase().includes("password") || msg.toLowerCase().includes("encrypt")) {
+      throw new Error("This PDF is password-protected and cannot be parsed. Please remove the password and try again.");
+    }
+    throw new Error(`Failed to parse PDF: ${msg}`);
+  }
   const pageTexts: string[] = [];
   const pages = data.text.split(/\f/);
 

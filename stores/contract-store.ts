@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type {
   Contract,
   ContractAnalysis,
@@ -114,6 +114,17 @@ const storeImpl = create<ContractStore>()(
     }),
     {
       name: "contract-analyst-storage",
+      storage: createJSONStorage(() => ({
+        getItem: (key: string) => {
+          try { return localStorage.getItem(key); } catch { return null; }
+        },
+        setItem: (key: string, value: string) => {
+          try { localStorage.setItem(key, value); } catch { /* quota exceeded — silently skip */ }
+        },
+        removeItem: (key: string) => {
+          try { localStorage.removeItem(key); } catch { /* ignore */ }
+        },
+      })),
       partialize: (state) => ({
         contracts: state.contracts.map((c) => ({
           ...c,
