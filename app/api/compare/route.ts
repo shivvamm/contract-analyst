@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateJSON } from "@/lib/gemini/client";
+import { generateJSON } from "@/lib/llm/provider";
 import { buildSideBySidePrompt, buildMatrixPrompt } from "@/lib/gemini/prompts";
 import type { SideBySideResult, MatrixResult } from "@/types";
 

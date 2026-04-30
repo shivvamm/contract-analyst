@@ -1,4 +1,4 @@
-import { generateJSON } from "@/lib/gemini/client";
+import { generateJSON, getProvider } from "@/lib/llm/provider";
 import {
   buildExtractionPrompt,
   buildRiskPrompt,
@@ -23,7 +23,7 @@ export interface PipelineCallbacks {
   onSuggestedQuestions: (questions: string[]) => void;
 }
 
-const FREE_TIER_DELAY_MS = 5000;
+const GEMINI_FREE_TIER_DELAY_MS = 5000;
 
 function isRateLimitError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
@@ -34,6 +34,12 @@ async function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function getFreeTierDelay(): number {
+  const provider = getProvider();
+  if (provider === "groq") return 0;
+  return GEMINI_FREE_TIER_DELAY_MS;
+}
+
 export async function runPipeline(
   chunks: ContractChunk[],
   language: string,
@@ -42,6 +48,7 @@ export async function runPipeline(
   retries: number = 3
 ): Promise<void> {
   const usingFreeTier = !userApiKey;
+  const freeTierDelay = getFreeTierDelay();
 
   callbacks.onProgress("extracting", 10);
 
@@ -54,7 +61,7 @@ export async function runPipeline(
   callbacks.onExtraction(keyTerms);
   callbacks.onProgress("analyzing-risks", 30);
 
-  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+  if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 
   // Pass 2: Risk Analysis
   const risksResult = await retryable(
@@ -65,7 +72,7 @@ export async function runPipeline(
   callbacks.onRisks(risksResult.risks);
   callbacks.onProgress("checking-compliance", 50);
 
-  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+  if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 
   const keyTermsJson = JSON.stringify(keyTerms);
   const risksJson = JSON.stringify(risksResult.risks);
@@ -81,7 +88,7 @@ export async function runPipeline(
   callbacks.onCompliance(complianceResult.compliance);
   callbacks.onProgress("summarizing", 70);
 
-  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+  if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 
   // Pass 4: Summary
   const summary = await retryable(
@@ -94,7 +101,7 @@ export async function runPipeline(
   callbacks.onSummary(summary);
   callbacks.onProgress("generating-questions", 90);
 
-  if (usingFreeTier) await delay(FREE_TIER_DELAY_MS);
+  if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 
   // Pass 5: Suggested Questions
   const questions = await retryable(
@@ -109,6 +116,7 @@ export async function runPipeline(
 }
 
 async function retryable<T>(fn: () => Promise<T>, maxRetries: number): Promise<T> {
+  const provider = getProvider();
   let lastError: Error | null = null;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -116,9 +124,14 @@ async function retryable<T>(fn: () => Promise<T>, maxRetries: number): Promise<T
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
       if (attempt < maxRetries) {
-        const backoff = isRateLimitError(err)
-          ? 15000 * (attempt + 1)
-          : 2000 * (attempt + 1);
+        let backoff: number;
+        if (isRateLimitError(err)) {
+          backoff = provider === "groq"
+            ? 60000 * (attempt + 1)
+            : 15000 * (attempt + 1);
+        } else {
+          backoff = 2000 * (attempt + 1);
+        }
         await delay(backoff);
       }
     }

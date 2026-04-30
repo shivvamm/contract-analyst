@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { generateStream } from "@/lib/gemini/client";
+import { generateStream } from "@/lib/llm/provider";
 import { buildChatPrompt } from "@/lib/gemini/prompts";
 
 function sseEvent(type: string, data: unknown): string {

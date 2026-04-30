@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
         const isRateLimit = message.includes("429") || message.toLowerCase().includes("rate limit") || message.toLowerCase().includes("quota") || message.toLowerCase().includes("resource_exhausted");
         const isDailyLimit = message.toLowerCase().includes("per day") || message.includes("limit: 0");
         const rateLimitMsg = isDailyLimit
-          ? "Daily API quota exhausted. Generate a new API key at aistudio.google.com/apikeys or wait until tomorrow."
-          : "Rate limit reached. Please wait a minute and try again, or add your own Gemini API key.";
+          ? "Daily API quota exhausted. Generate a new API key or wait until tomorrow."
+          : "Rate limit reached. Please wait a minute and try again.";
         controller.enqueue(new TextEncoder().encode(sseEvent("error", { message: isRateLimit ? rateLimitMsg : message, isRateLimit })));
       } finally {
         controller.close();

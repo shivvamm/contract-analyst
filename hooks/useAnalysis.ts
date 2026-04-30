@@ -172,12 +172,16 @@ export function useAnalysis() {
       const formData = new FormData();
       formData.append("file", file);
 
+      const headers: Record<string, string> = {
+        "x-output-language": settings.outputLanguage,
+      };
+      if (settings.geminiApiKey) {
+        headers["x-gemini-api-key"] = settings.geminiApiKey;
+      }
+
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "x-gemini-api-key": settings.geminiApiKey,
-          "x-output-language": settings.outputLanguage,
-        },
+        headers,
         body: formData,
       });
 
@@ -198,13 +202,17 @@ export function useAnalysis() {
     async (text: string): Promise<void> => {
       const contractId = createInitialContract("Pasted Text", "text");
 
+      const textHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        "x-output-language": settings.outputLanguage,
+      };
+      if (settings.geminiApiKey) {
+        textHeaders["x-gemini-api-key"] = settings.geminiApiKey;
+      }
+
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-gemini-api-key": settings.geminiApiKey,
-          "x-output-language": settings.outputLanguage,
-        },
+        headers: textHeaders,
         body: JSON.stringify({ text }),
       });
 

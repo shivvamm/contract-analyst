@@ -62,8 +62,8 @@ export default function Home() {
         progress: 0,
       }));
       setUploadQueue((q) => [...q, ...items]);
+      setView("analysis");
 
-      // Start analysis for each file
       for (const item of items) {
         setUploadQueue((q) =>
           q.map((qi) =>
@@ -85,8 +85,6 @@ export default function Home() {
           );
         }
       }
-
-      setView("analysis");
     },
     [analyzeFile]
   );
