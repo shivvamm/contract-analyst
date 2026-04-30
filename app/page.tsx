@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useContractStore } from "@/stores/contract-store";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { useComparison } from "@/hooks/useComparison";
@@ -52,6 +52,18 @@ export default function Home() {
 
   const activeContract = contracts.find((c) => c.id === activeContractId) ?? null;
   const activeComparison = comparisons.find((c) => c.id === activeComparisonId) ?? null;
+
+  // Auto-navigate to analysis view when persisted contracts exist on mount
+  useEffect(() => {
+    if (contracts.length > 0 && view === "landing") {
+      setView("analysis");
+      if (!activeContractId) {
+        setActiveContract(contracts[0].id);
+      }
+    }
+    // Only run on hydration, not on every contracts change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contracts.length > 0]);
 
   // Handle files dropped/selected
   const handleFiles = useCallback(
@@ -146,6 +158,24 @@ export default function Home() {
 
         <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
           <div className="w-full max-w-2xl space-y-8">
+            {contracts.length > 0 && (
+              <button
+                onClick={() => {
+                  if (!activeContractId) setActiveContract(contracts[0].id);
+                  setView("analysis");
+                }}
+                className="mx-auto flex items-center gap-2 px-4 py-2.5 bg-blue-450/10 border border-blue-450/30 rounded-[var(--radius-card)] text-caption text-blue-450 hover:bg-blue-450/20 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                View {contracts.length} previous {contracts.length === 1 ? "analysis" : "analyses"}
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+
             <HeroSection />
 
             {/* Tab switcher */}
