@@ -34,28 +34,42 @@ function ContractItem({
 
   return (
     <div
-      onClick={isCompareMode ? onToggleCompare : onSelect}
-      className={`group flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-button)] cursor-pointer transition-colors ${
-        isActive && !isCompareMode
+      onClick={isCompareMode ? undefined : onSelect}
+      className={`group flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-button)] transition-colors ${
+        !isCompareMode ? "cursor-pointer" : ""
+      } ${
+        isActive
           ? "bg-blue-450/10 ring-1 ring-blue-450"
           : "hover:bg-gray-100"
       } ${isSelected ? "bg-blue-450/10 ring-1 ring-blue-450" : ""}`}
     >
       {isCompareMode && (
-        <div
-          className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
-            isSelected ? "bg-blue-450 border-blue-450" : "border-border bg-surface"
-          }`}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompare();
+          }}
+          className="flex-shrink-0"
+          aria-label={isSelected ? "Deselect for comparison" : "Select for comparison"}
         >
-          {isSelected && (
-            <svg className="w-2.5 h-2.5 text-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          )}
-        </div>
+          <div
+            className={`w-4 h-4 rounded flex items-center justify-center border-2 transition-colors ${
+              isSelected ? "bg-blue-450 border-blue-450" : "border-border bg-surface hover:border-blue-450/50"
+            }`}
+          >
+            {isSelected && (
+              <svg className="w-2.5 h-2.5 text-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+        </button>
       )}
 
-      <div className="flex-1 min-w-0">
+      <div
+        className={`flex-1 min-w-0 ${isCompareMode ? "cursor-pointer" : ""}`}
+        onClick={isCompareMode ? (e) => { e.stopPropagation(); onSelect(); } : undefined}
+      >
         <p className="text-small text-near-black truncate font-medium">{contract.fileName}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
