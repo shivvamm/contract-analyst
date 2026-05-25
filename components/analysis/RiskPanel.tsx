@@ -71,8 +71,8 @@ export function RiskPanel({ risks }: RiskPanelProps) {
         <p className="text-body text-slate">No risks identified.</p>
       ) : (
         <div className="space-y-3">
-          {sorted.map((risk) => (
-            <RiskCard key={risk.id} risk={risk} />
+          {sorted.map((risk, i) => (
+            <RiskCard key={risk.id || `risk-${i}`} risk={risk} />
           ))}
         </div>
       )}

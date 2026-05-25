@@ -28,8 +28,8 @@ export function CompliancePanel({ findings }: CompliancePanelProps) {
         <p className="text-body text-slate">No compliance findings.</p>
       ) : (
         <div className="space-y-3">
-          {sorted.map((finding) => (
-            <div key={finding.id} className="bg-surface/70 rounded-[var(--radius-button)] p-3 space-y-2">
+          {sorted.map((finding, i) => (
+            <div key={finding.id || `finding-${i}`} className="bg-surface/70 rounded-[var(--radius-button)] p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-caption text-near-black font-medium">{finding.title}</p>
