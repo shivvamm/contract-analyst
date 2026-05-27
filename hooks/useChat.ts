@@ -1,21 +1,33 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useContractStore } from "@/stores/contract-store";
 import type { ChatMessage, SourceReference } from "@/types";
 
 export function useChat() {
   const [isStreaming, setIsStreaming] = useState(false);
-  const { activeContractId, addChatMessage, updateContract, settings } = useContractStore();
+  const { addChatMessage, updateContract, settings } = useContractStore();
+
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Clean up on unmount: abort any in-progress chat stream
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const sendMessage = useCallback(
     async (question: string): Promise<void> => {
-      if (!activeContractId) return;
+      // Capture the contract ID at the start of this call so it stays
+      // stable even if the user switches contracts during streaming.
+      const contractId = useContractStore.getState().activeContractId;
+      if (!contractId) return;
 
       // Snapshot current contract state
       const state = useContractStore.getState();
-      const contract = state.contracts.find((c) => c.id === activeContractId);
+      const contract = state.contracts.find((c) => c.id === contractId);
       if (!contract) return;
 
       // Build user message
@@ -36,9 +48,14 @@ export function useChat() {
         timestamp: Date.now(),
       };
 
+      // Abort any in-progress chat stream
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       // Add both messages to store before fetching
-      addChatMessage(activeContractId, userMessage);
-      addChatMessage(activeContractId, assistantMessage);
+      addChatMessage(contractId, userMessage);
+      addChatMessage(contractId, assistantMessage);
 
       const assistantMsgId = assistantMessage.id;
 
@@ -47,6 +64,28 @@ export function useChat() {
       const chatHistory = previousMessages
         .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
         .join("\n");
+
+      // Guard: if rawText was lost (e.g. cleared from storage), surface an error
+      // instead of sending the LLM a request with no contract context.
+      if (!contract.rawText) {
+        const currentState = useContractStore.getState();
+        const currentContract = currentState.contracts.find((c) => c.id === contractId);
+        if (currentContract) {
+          const updatedMessages = currentContract.chat.messages.map((m) =>
+            m.id === assistantMsgId
+              ? {
+                  ...m,
+                  content:
+                    "Contract text is no longer available. Please re-upload the document to continue chatting.",
+                }
+              : m
+          );
+          updateContract(contractId, {
+            chat: { ...currentContract.chat, messages: updatedMessages },
+          });
+        }
+        return;
+      }
 
       const analysisContext = contract.analysis.keyTerms
         ? JSON.stringify(contract.analysis.keyTerms)
@@ -68,19 +107,20 @@ export function useChat() {
             analysisContext,
             chatHistory,
           }),
+          signal: controller.signal,
         });
 
         if (!response.ok || !response.body) {
           // Update assistant message with error
           const currentState = useContractStore.getState();
-          const currentContract = currentState.contracts.find((c) => c.id === activeContractId);
+          const currentContract = currentState.contracts.find((c) => c.id === contractId);
           if (currentContract) {
             const updatedMessages = currentContract.chat.messages.map((m) =>
               m.id === assistantMsgId
                 ? { ...m, content: "Sorry, there was an error processing your request." }
                 : m
             );
-            updateContract(activeContractId, {
+            updateContract(contractId, {
               chat: { ...currentContract.chat, messages: updatedMessages },
             });
           }
@@ -94,6 +134,7 @@ export function useChat() {
 
         try {
           while (true) {
+            if (controller.signal.aborted) break;
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -117,10 +158,10 @@ export function useChat() {
                 if (event.type === "token") {
                   accumulatedContent += event.data as string;
 
-                  // Use getState() to get latest state inside the loop
+                  // Use getState() with captured contractId to write to correct contract
                   const latestState = useContractStore.getState();
                   const latestContract = latestState.contracts.find(
-                    (c) => c.id === activeContractId
+                    (c) => c.id === contractId
                   );
                   if (latestContract) {
                     const updatedMessages = latestContract.chat.messages.map((m) =>
@@ -128,7 +169,7 @@ export function useChat() {
                         ? { ...m, content: accumulatedContent }
                         : m
                     );
-                    updateContract(activeContractId, {
+                    updateContract(contractId, {
                       chat: { ...latestContract.chat, messages: updatedMessages },
                     });
                   }
@@ -136,13 +177,13 @@ export function useChat() {
                   const sources = event.data as SourceReference[];
                   const latestState = useContractStore.getState();
                   const latestContract = latestState.contracts.find(
-                    (c) => c.id === activeContractId
+                    (c) => c.id === contractId
                   );
                   if (latestContract) {
                     const updatedMessages = latestContract.chat.messages.map((m) =>
                       m.id === assistantMsgId ? { ...m, sources } : m
                     );
-                    updateContract(activeContractId, {
+                    updateContract(contractId, {
                       chat: { ...latestContract.chat, messages: updatedMessages },
                     });
                   }
@@ -150,7 +191,7 @@ export function useChat() {
                   const d = event.data as { message: string };
                   const latestState = useContractStore.getState();
                   const latestContract = latestState.contracts.find(
-                    (c) => c.id === activeContractId
+                    (c) => c.id === contractId
                   );
                   if (latestContract) {
                     const updatedMessages = latestContract.chat.messages.map((m) =>
@@ -158,7 +199,7 @@ export function useChat() {
                         ? { ...m, content: d.message || "An error occurred." }
                         : m
                     );
-                    updateContract(activeContractId, {
+                    updateContract(contractId, {
                       chat: { ...latestContract.chat, messages: updatedMessages },
                     });
                   }
@@ -169,11 +210,14 @@ export function useChat() {
         } finally {
           reader.releaseLock();
         }
+      } catch (err) {
+        if (controller.signal.aborted) return; // Cancelled, not an error
+        throw err;
       } finally {
         setIsStreaming(false);
       }
     },
-    [activeContractId, addChatMessage, updateContract, settings]
+    [addChatMessage, updateContract, settings]
   );
 
   return { sendMessage, isStreaming };

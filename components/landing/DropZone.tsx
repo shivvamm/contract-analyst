@@ -2,6 +2,22 @@
 
 import React, { useCallback, useRef, useState } from "react";
 
+const SUPPORTED_EXTENSIONS = [".pdf", ".docx", ".png", ".jpg", ".jpeg", ".txt"];
+
+function filterSupportedFiles(files: File[]): { supported: File[]; rejected: File[] } {
+  const supported: File[] = [];
+  const rejected: File[] = [];
+  for (const file of files) {
+    const lower = file.name.toLowerCase();
+    if (SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
+      supported.push(file);
+    } else {
+      rejected.push(file);
+    }
+  }
+  return { supported, rejected };
+}
+
 interface DropZoneProps {
   onFiles: (files: File[]) => void;
 }
@@ -24,9 +40,16 @@ export function DropZone({ onFiles }: DropZoneProps) {
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) {
-        onFiles(files);
+      const allFiles = Array.from(e.dataTransfer.files);
+      const { supported, rejected } = filterSupportedFiles(allFiles);
+      if (rejected.length > 0) {
+        const names = rejected.map((f) => f.name).join(", ");
+        window.alert(
+          `Unsupported file${rejected.length > 1 ? "s" : ""}: ${names}. Supported formats: PDF, DOCX, PNG, JPG, TXT.`
+        );
+      }
+      if (supported.length > 0) {
+        onFiles(supported);
       }
     },
     [onFiles]
@@ -34,9 +57,16 @@ export function DropZone({ onFiles }: DropZoneProps) {
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files ?? []);
-      if (files.length > 0) {
-        onFiles(files);
+      const allFiles = Array.from(e.target.files ?? []);
+      const { supported, rejected } = filterSupportedFiles(allFiles);
+      if (rejected.length > 0) {
+        const names = rejected.map((f) => f.name).join(", ");
+        window.alert(
+          `Unsupported file${rejected.length > 1 ? "s" : ""}: ${names}. Supported formats: PDF, DOCX, PNG, JPG, TXT.`
+        );
+      }
+      if (supported.length > 0) {
+        onFiles(supported);
       }
       // Reset so the same file can be re-selected
       if (inputRef.current) {
@@ -66,7 +96,7 @@ export function DropZone({ onFiles }: DropZoneProps) {
         ref={inputRef}
         type="file"
         multiple
-        accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,.txt"
+        accept=".pdf,.docx,.png,.jpg,.jpeg,.txt"
         className="hidden"
         onChange={handleChange}
       />

@@ -1,8 +1,5 @@
 import Groq from "groq-sdk";
 
-let cachedClient: Groq | null = null;
-let cachedKey: string | null = null;
-
 const MODEL = "llama-3.3-70b-versatile";
 
 function getGroqClient(userApiKey?: string): Groq {
@@ -10,12 +7,7 @@ function getGroqClient(userApiKey?: string): Groq {
   if (!apiKey) {
     throw new Error("No Groq API key available. Please provide your own API key.");
   }
-  if (cachedClient && cachedKey === apiKey) {
-    return cachedClient;
-  }
-  cachedClient = new Groq({ apiKey });
-  cachedKey = apiKey;
-  return cachedClient;
+  return new Groq({ apiKey });
 }
 
 export async function generateJSON<T>(prompt: string, userApiKey?: string): Promise<T> {

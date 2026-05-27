@@ -1,9 +1,9 @@
 import { parsePdf } from "./pdf-parser";
 import { parseDocx } from "./docx-parser";
 import { parseImageOcr } from "./ocr-parser";
-import { detectFileType } from "./detect-file-type";
+import { detectFileType, isSupportedFile, SUPPORTED_FORMATS_LABEL } from "./detect-file-type";
 export type { FileType } from "./detect-file-type";
-export { detectFileType };
+export { detectFileType, isSupportedFile };
 
 export function parseTextInput(text: string): { rawText: string; pageCount: number } {
   return { rawText: text, pageCount: 1 };
@@ -14,6 +14,13 @@ export async function parseFile(
   fileName: string,
   mimeType: string
 ): Promise<{ rawText: string; pageCount: number; ocrWarning?: string }> {
+  if (!isSupportedFile(fileName, mimeType)) {
+    const ext = fileName.includes(".") ? fileName.slice(fileName.lastIndexOf(".")) : "(unknown)";
+    throw new Error(
+      `Unsupported file format: ${ext}. Supported formats: ${SUPPORTED_FORMATS_LABEL}.`
+    );
+  }
+
   const fileType = detectFileType(fileName, mimeType);
 
   switch (fileType) {

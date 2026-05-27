@@ -94,7 +94,7 @@ export function ContractSidebar({
   if (contracts.length === 0) return null;
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-surface border-r border-border flex flex-col">
+    <aside className="hidden md:flex md:w-56 flex-shrink-0 bg-surface border-r border-border flex-col">
       <div className="flex-shrink-0 px-4 pt-3 pb-2">
         <p className="text-micro text-placeholder uppercase tracking-wide px-1">
           {isCompareMode ? "Select to Compare" : "Contracts"}

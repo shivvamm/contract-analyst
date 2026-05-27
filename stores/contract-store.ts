@@ -125,10 +125,15 @@ const storeImpl = create<ContractStore>()(
           try { localStorage.removeItem(key); } catch { /* ignore */ }
         },
       })),
+      // Keep rawText so chat still works after page reload, but cap at 200k chars
+      // to avoid blowing localStorage quota. Chunks are large and regenerable, so drop them.
       partialize: (state) => ({
         contracts: state.contracts.map((c) => ({
           ...c,
-          rawText: "",
+          rawText:
+            c.rawText.length > 200_000
+              ? c.rawText.slice(0, 200_000) + "\n\n[…truncated for storage]"
+              : c.rawText,
           chunks: [],
         })),
         comparisons: state.comparisons,

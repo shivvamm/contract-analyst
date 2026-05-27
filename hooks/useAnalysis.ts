@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useContractStore } from "@/stores/contract-store";
 import { detectFileType } from "@/lib/parsers/detect-file-type";
@@ -18,8 +18,17 @@ export function useAnalysis() {
   const { addContract, updateAnalysis, updateContract, setSuggestedQuestions, settings } =
     useContractStore();
 
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Clean up on unmount: abort any in-progress analysis
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   const processStream = useCallback(
-    async (contractId: string, response: Response) => {
+    async (contractId: string, response: Response, signal: AbortSignal) => {
       const reader = response.body?.getReader();
       if (!reader) {
         updateAnalysis(contractId, { status: "error", error: "No response stream" });
@@ -31,6 +40,7 @@ export function useAnalysis() {
 
       try {
         while (true) {
+          if (signal.aborted) break;
           const { done, value } = await reader.read();
           if (done) break;
 
@@ -124,6 +134,7 @@ export function useAnalysis() {
           }
         }
       } catch (err) {
+        if (signal.aborted) return; // Don't surface abort as an error
         const message = err instanceof Error ? err.message : "Stream read failed";
         updateAnalysis(contractId, { status: "error", error: message });
       } finally {
@@ -166,6 +177,11 @@ export function useAnalysis() {
 
   const analyzeFile = useCallback(
     async (file: File): Promise<void> => {
+      // Abort any in-progress analysis
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const fileType = detectFileType(file.name, file.type);
       const contractId = createInitialContract(file.name, fileType);
 
@@ -179,27 +195,39 @@ export function useAnalysis() {
         headers["x-gemini-api-key"] = settings.geminiApiKey;
       }
 
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        updateAnalysis(contractId, {
-          status: "error",
-          error: `Request failed: ${response.statusText}`,
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers,
+          body: formData,
+          signal: controller.signal,
         });
-        return;
-      }
 
-      await processStream(contractId, response);
+        if (!response.ok) {
+          updateAnalysis(contractId, {
+            status: "error",
+            error: `Request failed: ${response.statusText}`,
+          });
+          return;
+        }
+
+        await processStream(contractId, response, controller.signal);
+      } catch (err) {
+        if (controller.signal.aborted) return; // Cancelled, not an error
+        const message = err instanceof Error ? err.message : "Analysis failed";
+        updateAnalysis(contractId, { status: "error", error: message });
+      }
     },
     [createInitialContract, processStream, updateAnalysis, settings]
   );
 
   const analyzeText = useCallback(
     async (text: string): Promise<void> => {
+      // Abort any in-progress analysis
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const contractId = createInitialContract("Pasted Text", "text");
 
       const textHeaders: Record<string, string> = {
@@ -210,21 +238,28 @@ export function useAnalysis() {
         textHeaders["x-gemini-api-key"] = settings.geminiApiKey;
       }
 
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: textHeaders,
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        updateAnalysis(contractId, {
-          status: "error",
-          error: `Request failed: ${response.statusText}`,
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: textHeaders,
+          body: JSON.stringify({ text }),
+          signal: controller.signal,
         });
-        return;
-      }
 
-      await processStream(contractId, response);
+        if (!response.ok) {
+          updateAnalysis(contractId, {
+            status: "error",
+            error: `Request failed: ${response.statusText}`,
+          });
+          return;
+        }
+
+        await processStream(contractId, response, controller.signal);
+      } catch (err) {
+        if (controller.signal.aborted) return; // Cancelled, not an error
+        const message = err instanceof Error ? err.message : "Analysis failed";
+        updateAnalysis(contractId, { status: "error", error: message });
+      }
     },
     [createInitialContract, processStream, updateAnalysis, settings]
   );

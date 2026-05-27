@@ -1,19 +1,11 @@
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
 
-let cachedClient: GoogleGenerativeAI | null = null;
-let cachedKey: string | null = null;
-
 export function getGeminiClient(userApiKey?: string): GoogleGenerativeAI {
   const apiKey = userApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("No Gemini API key available. Please provide your own API key.");
   }
-  if (cachedClient && cachedKey === apiKey) {
-    return cachedClient;
-  }
-  cachedClient = new GoogleGenerativeAI(apiKey);
-  cachedKey = apiKey;
-  return cachedClient;
+  return new GoogleGenerativeAI(apiKey);
 }
 
 export function getModel(userApiKey?: string, modelName: string = "gemini-2.0-flash"): GenerativeModel {

@@ -67,7 +67,13 @@ export function ChatSidebar({ contractId, isOpen, onToggle }: ChatSidebarProps) 
   }
 
   return (
-    <div className="w-96 flex-shrink-0 bg-surface border-l border-border flex flex-col">
+    <>
+      {/* Mobile backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 z-40 md:hidden"
+        onClick={onToggle}
+      />
+      <div className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto md:w-96 flex-shrink-0 bg-surface border-l border-border flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-2">
@@ -80,10 +86,10 @@ export function ChatSidebar({ contractId, isOpen, onToggle }: ChatSidebarProps) 
         </div>
         <button
           onClick={onToggle}
-          className="w-7 h-7 flex items-center justify-center rounded-full text-placeholder hover:text-near-black hover:bg-gray-100 transition-colors"
+          className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center rounded-full text-placeholder hover:text-near-black hover:bg-gray-100 transition-colors"
           aria-label="Close chat"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -152,5 +158,6 @@ export function ChatSidebar({ contractId, isOpen, onToggle }: ChatSidebarProps) 
         <p className="text-small text-placeholder mt-1.5">Enter to send · Shift+Enter for newline</p>
       </div>
     </div>
+    </>
   );
 }

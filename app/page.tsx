@@ -281,14 +281,14 @@ export default function Home() {
         )}
 
         {/* Main content */}
-        <main className="flex-1 min-w-0 overflow-y-auto p-6">
+        <main className="flex-1 min-w-0 overflow-y-auto p-3 sm:p-4 md:p-6">
           {/* Compare mode toolbar */}
           {isCompareMode && (
-            <div className="mb-4 flex items-center gap-3 bg-blue-450/10 border border-blue-450/30 rounded-[var(--radius-card)] px-4 py-3">
-              <svg className="w-5 h-5 text-blue-450 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 bg-blue-450/10 border border-blue-450/30 rounded-[var(--radius-card)] px-3 py-2 sm:px-4 sm:py-3">
+              <svg className="w-5 h-5 text-blue-450 flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
               </svg>
-              <p className="text-caption text-blue-450 flex-1">
+              <p className="text-caption text-blue-450 flex-1 min-w-0">
                 Select {selectedForCompare.length < 2 ? `${2 - selectedForCompare.length} more contract` : "contracts"} to compare
                 {selectedForCompare.length >= 2 && " — ready!"}
               </p>
@@ -297,7 +297,7 @@ export default function Home() {
                   <button
                     onClick={() => void handleRunCompare()}
                     disabled={isComparing}
-                    className="px-4 py-1.5 bg-blue-450 text-surface text-caption rounded-[var(--radius-button)] hover:bg-blue-pressed transition-colors disabled:opacity-50"
+                    className="px-3 py-1.5 sm:px-4 bg-blue-450 text-surface text-caption rounded-[var(--radius-button)] hover:bg-blue-pressed transition-colors disabled:opacity-50"
                   >
                     {isComparing ? "Comparing…" : "Compare"}
                   </button>

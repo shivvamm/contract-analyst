@@ -1,8 +1,5 @@
 import { Mistral } from "@mistralai/mistralai";
 
-let cachedClient: Mistral | null = null;
-let cachedKey: string | null = null;
-
 const MODEL = "mistral-small-latest";
 
 function getMistralClient(userApiKey?: string): Mistral {
@@ -10,12 +7,7 @@ function getMistralClient(userApiKey?: string): Mistral {
   if (!apiKey) {
     throw new Error("No Mistral API key available. Please provide your own API key.");
   }
-  if (cachedClient && cachedKey === apiKey) {
-    return cachedClient;
-  }
-  cachedClient = new Mistral({ apiKey });
-  cachedKey = apiKey;
-  return cachedClient;
+  return new Mistral({ apiKey });
 }
 
 export async function generateJSON<T>(prompt: string, userApiKey?: string): Promise<T> {
