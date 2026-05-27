@@ -36,7 +36,7 @@ async function delay(ms: number): Promise<void> {
 
 function getFreeTierDelay(): number {
   const provider = getProvider();
-  if (provider === "groq") return 0;
+  if (provider === "groq" || provider === "mistral") return 0;
   return GEMINI_FREE_TIER_DELAY_MS;
 }
 
