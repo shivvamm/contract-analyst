@@ -15,17 +15,22 @@ export function SummaryPanel({ summary }: SummaryPanelProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-feature text-teal-dark">Summary</h3>
         <div className="flex items-center gap-1">
-          {([1, 2, 3] as const).map((l) => (
+          {([
+            { l: 1 as const, label: "Brief", title: "One-sentence summary" },
+            { l: 2 as const, label: "Key Points", title: "Key bullet points" },
+            { l: 3 as const, label: "Detailed", title: "Section-by-section breakdown" },
+          ]).map(({ l, label, title }) => (
             <button
               key={l}
               onClick={() => setLayer(l)}
+              title={title}
               className={`px-2.5 py-1 rounded-[var(--radius-pill)] text-small transition-colors ${
                 layer === l
                   ? "bg-teal-dark text-surface"
                   : "text-teal-dark hover:bg-teal-dark/10"
               }`}
             >
-              L{l}
+              {label}
             </button>
           ))}
         </div>

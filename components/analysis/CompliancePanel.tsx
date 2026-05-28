@@ -20,7 +20,7 @@ export function CompliancePanel({ findings }: CompliancePanelProps) {
   return (
     <div className="bg-pink-light ring-miro rounded-[var(--radius-card)] p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-feature" style={{ color: "#9b1a6a" }}>Compliance</h3>
+        <h3 className="text-feature text-coral-dark">Compliance</h3>
         <span className="text-small text-slate">{findings.length} finding{findings.length !== 1 ? "s" : ""}</span>
       </div>
 

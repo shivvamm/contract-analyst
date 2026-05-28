@@ -86,7 +86,7 @@ export function ChatSidebar({ contractId, isOpen, onToggle }: ChatSidebarProps) 
         </div>
         <button
           onClick={onToggle}
-          className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center rounded-full text-placeholder hover:text-near-black hover:bg-gray-100 transition-colors"
+          className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center rounded-full text-placeholder hover:text-near-black hover:bg-bg-muted transition-colors"
           aria-label="Close chat"
         >
           <svg className="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -135,7 +135,7 @@ export function ChatSidebar({ contractId, isOpen, onToggle }: ChatSidebarProps) 
             placeholder="Ask a question…"
             rows={2}
             disabled={isStreaming}
-            className="flex-1 rounded-[var(--radius-button)] border border-input-border bg-gray-50 px-3 py-2 text-body text-near-black placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent resize-none disabled:opacity-50 transition-colors"
+            className="flex-1 rounded-[var(--radius-button)] border border-input-border bg-bg px-3 py-2 text-body text-near-black placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent resize-none disabled:opacity-50 transition-colors"
           />
           <button
             onClick={() => void handleSend()}

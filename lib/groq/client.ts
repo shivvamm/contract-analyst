@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { extractJSON } from "@/lib/llm/extract-json";
 
 const MODEL = "llama-3.3-70b-versatile";
 
@@ -16,21 +17,11 @@ export async function generateJSON<T>(prompt: string, userApiKey?: string): Prom
     model: MODEL,
     messages: [{ role: "user", content: prompt }],
     temperature: 0.1,
-    max_tokens: 8192,
+    max_tokens: 32768,
   });
 
   const text = response.choices[0]?.message?.content || "";
-
-  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) ||
-    text.match(/\{[\s\S]*\}/) ||
-    text.match(/\[[\s\S]*\]/);
-
-  if (!jsonMatch) {
-    throw new Error("Failed to parse JSON response from Groq");
-  }
-
-  const jsonStr = jsonMatch[1] || jsonMatch[0];
-  return JSON.parse(jsonStr) as T;
+  return JSON.parse(extractJSON(text)) as T;
 }
 
 export async function* generateStream(prompt: string, userApiKey?: string): AsyncGenerator<string> {
@@ -39,7 +30,7 @@ export async function* generateStream(prompt: string, userApiKey?: string): Asyn
     model: MODEL,
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
-    max_tokens: 4096,
+    max_tokens: 8192,
     stream: true,
   });
 

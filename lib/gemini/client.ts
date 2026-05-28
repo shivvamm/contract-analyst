@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
+import { extractJSON } from "@/lib/llm/extract-json";
 
 export function getGeminiClient(userApiKey?: string): GoogleGenerativeAI {
   const apiKey = userApiKey || process.env.GEMINI_API_KEY;
@@ -17,17 +18,7 @@ export async function generateJSON<T>(prompt: string, userApiKey?: string): Prom
   const model = getModel(userApiKey);
   const result = await model.generateContent(prompt);
   const text = result.response.text();
-
-  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) ||
-    text.match(/\{[\s\S]*\}/) ||
-    text.match(/\[[\s\S]*\]/);
-
-  if (!jsonMatch) {
-    throw new Error("Failed to parse JSON response from Gemini");
-  }
-
-  const jsonStr = jsonMatch[1] || jsonMatch[0];
-  return JSON.parse(jsonStr) as T;
+  return JSON.parse(extractJSON(text)) as T;
 }
 
 export async function* generateStream(prompt: string, userApiKey?: string): AsyncGenerator<string> {

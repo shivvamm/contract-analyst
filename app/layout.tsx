@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
+import { DarkModeSync } from "@/components/common/DarkModeSync";
 import "./globals.css";
 
 const notoSans = Noto_Sans({
@@ -21,7 +22,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${notoSans.variable}`}>
-      <body className="bg-surface text-near-black font-body antialiased">
+      <body className="bg-bg text-near-black font-body antialiased">
+        <DarkModeSync />
         {children}
       </body>
     </html>

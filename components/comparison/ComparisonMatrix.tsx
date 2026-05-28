@@ -10,7 +10,7 @@ interface ComparisonMatrixProps {
 
 const favorabilityStyles: Record<string, string> = {
   good: "bg-teal-light text-teal-dark",
-  neutral: "bg-gray-50 text-slate",
+  neutral: "bg-bg text-slate",
   bad: "bg-coral-light text-coral-dark",
 };
 
@@ -18,7 +18,7 @@ function CellContent({ value, clauseText, favorability }: { value: string; claus
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <td className={`border border-border p-2 align-top min-w-[140px] ${favorabilityStyles[favorability] ?? "bg-gray-50"}`}>
+    <td className={`border border-border p-2 align-top min-w-[140px] ${favorabilityStyles[favorability] ?? "bg-bg"}`}>
       <p className="text-small">{value}</p>
       {clauseText && (
         <>
@@ -42,7 +42,7 @@ export function ComparisonMatrix({ result, contractNames }: ComparisonMatrixProp
     <div className="overflow-x-auto rounded-[var(--radius-card)] ring-miro">
       <table className="min-w-full border-collapse text-left">
         <thead>
-          <tr className="bg-gray-50 border-b border-border">
+          <tr className="bg-bg border-b border-border">
             <th className="px-4 py-3 text-caption text-near-black font-medium min-w-[160px]">
               Dimension
             </th>
@@ -55,7 +55,7 @@ export function ComparisonMatrix({ result, contractNames }: ComparisonMatrixProp
         </thead>
         <tbody>
           {result.rows.map((row, rowIdx) => (
-            <tr key={rowIdx} className={rowIdx % 2 === 0 ? "bg-surface" : "bg-gray-50/50"}>
+            <tr key={rowIdx} className={rowIdx % 2 === 0 ? "bg-surface" : "bg-bg/50"}>
               <td className="border border-border px-4 py-2.5">
                 <p className="text-small font-medium text-near-black">{row.dimension}</p>
               </td>

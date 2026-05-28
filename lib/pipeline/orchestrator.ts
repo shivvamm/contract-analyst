@@ -15,7 +15,7 @@ import type {
 } from "@/types";
 
 export interface PipelineCallbacks {
-  onProgress: (stage: string, percent: number) => void;
+  onProgress: (stage: string, percent: number, message?: string) => void;
   onExtraction: (keyTerms: KeyTerms) => void;
   onRisks: (risks: Risk[]) => void;
   onCompliance: (findings: ComplianceFinding[]) => void;
@@ -52,10 +52,13 @@ export async function runPipeline(
 
   callbacks.onProgress("extracting", 10);
 
+  const retryNotify = (stage: string) => (msg: string) => callbacks.onProgress(stage, -1, msg);
+
   // Pass 1: Key Terms Extraction
   const keyTerms = await retryable(
     () => generateJSON<KeyTerms>(buildExtractionPrompt(chunks, language), userApiKey),
-    retries
+    retries,
+    retryNotify("extracting"),
   );
 
   callbacks.onExtraction(keyTerms);
@@ -66,7 +69,8 @@ export async function runPipeline(
   // Pass 2: Risk Analysis
   const risksResult = await retryable(
     () => generateJSON<{ risks: Risk[] }>(buildRiskPrompt(chunks, language), userApiKey),
-    retries
+    retries,
+    retryNotify("analyzing-risks"),
   );
 
   const risks = Array.isArray(risksResult?.risks) ? risksResult.risks : [];
@@ -83,7 +87,8 @@ export async function runPipeline(
     () => generateJSON<{ compliance: ComplianceFinding[] }>(
       buildCompliancePrompt(chunks, keyTermsJson, language), userApiKey
     ),
-    retries
+    retries,
+    retryNotify("checking-compliance"),
   );
 
   const compliance = Array.isArray(complianceResult?.compliance) ? complianceResult.compliance : [];
@@ -97,7 +102,8 @@ export async function runPipeline(
     () => generateJSON<ContractSummary>(
       buildSummaryPrompt(chunks, keyTermsJson, risksJson, language), userApiKey
     ),
-    retries
+    retries,
+    retryNotify("summarizing"),
   );
 
   callbacks.onSummary(summary);
@@ -110,7 +116,8 @@ export async function runPipeline(
     () => generateJSON<string[]>(
       buildSuggestedQuestionsPrompt(keyTermsJson, risksJson, language), userApiKey
     ),
-    retries
+    retries,
+    retryNotify("generating-questions"),
   );
 
   const safeQuestions = Array.isArray(questions) ? questions : [];
@@ -118,7 +125,11 @@ export async function runPipeline(
   callbacks.onProgress("complete", 100);
 }
 
-async function retryable<T>(fn: () => Promise<T>, maxRetries: number): Promise<T> {
+async function retryable<T>(
+  fn: () => Promise<T>,
+  maxRetries: number,
+  onRetryWait?: (message: string) => void,
+): Promise<T> {
   const provider = getProvider();
   let lastError: Error | null = null;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -134,6 +145,10 @@ async function retryable<T>(fn: () => Promise<T>, maxRetries: number): Promise<T
             : 15000 * (attempt + 1);
         } else {
           backoff = 2000 * (attempt + 1);
+        }
+        if (onRetryWait) {
+          const secs = Math.ceil(backoff / 1000);
+          onRetryWait(`Rate limit hit — retrying in ${secs}s (attempt ${attempt + 2}/${maxRetries + 1})`);
         }
         await delay(backoff);
       }

@@ -13,7 +13,6 @@ const LANGUAGES = [
   "Chinese",
   "Japanese",
   "Korean",
-  "Arabic",
 ];
 
 export function ApiKeyInput() {
@@ -54,7 +53,7 @@ export function ApiKeyInput() {
                 value={settings.geminiApiKey}
                 onChange={(e) => updateSettings({ geminiApiKey: e.target.value })}
                 placeholder="AIza…"
-                className="w-full rounded-[var(--radius-button)] border border-input-border bg-gray-50 px-3 py-2 pr-10 text-body text-near-black placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent"
+                className="w-full rounded-[var(--radius-button)] border border-input-border bg-bg px-3 py-2 pr-10 text-body text-near-black placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent"
               />
               <button
                 type="button"
@@ -89,7 +88,7 @@ export function ApiKeyInput() {
             <select
               value={settings.outputLanguage}
               onChange={(e) => updateSettings({ outputLanguage: e.target.value })}
-              className="w-full rounded-[var(--radius-button)] border border-input-border bg-gray-50 px-3 py-2 text-body text-near-black focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent"
+              className="w-full rounded-[var(--radius-button)] border border-input-border bg-bg px-3 py-2 text-body text-near-black focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent"
             >
               {LANGUAGES.map((lang) => (
                 <option key={lang} value={lang}>

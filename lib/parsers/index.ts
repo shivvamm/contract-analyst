@@ -1,6 +1,6 @@
 import { parsePdf } from "./pdf-parser";
 import { parseDocx } from "./docx-parser";
-import { parseImageOcr } from "./ocr-parser";
+import { parseImageOcr, ocrPdfPages } from "./ocr-parser";
 import { detectFileType, isSupportedFile, SUPPORTED_FORMATS_LABEL } from "./detect-file-type";
 export type { FileType } from "./detect-file-type";
 export { detectFileType, isSupportedFile };
@@ -27,7 +27,7 @@ export async function parseFile(
     case "pdf": {
       const pdfResult = await parsePdf(buffer);
       if (!pdfResult.hasExtractableText) {
-        const ocrResult = await parseImageOcr(buffer, "application/pdf");
+        const ocrResult = await ocrPdfPages(buffer, pdfResult.pageCount);
         return {
           rawText: ocrResult.rawText,
           pageCount: pdfResult.pageCount,

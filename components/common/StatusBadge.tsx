@@ -5,7 +5,7 @@ interface StatusBadgeProps {
 }
 
 const styles: Record<string, string> = {
-  compliant: "bg-green-100 text-green-800",
+  compliant: "bg-teal-light text-teal-dark",
   warning: "bg-orange-light text-yellow-dark",
   "non-compliant": "bg-coral-light text-coral-dark",
 };

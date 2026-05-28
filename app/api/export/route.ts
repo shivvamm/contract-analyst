@@ -6,7 +6,8 @@ import type { ContractAnalysis } from "@/types";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { format, fileName, analysis, pageCount } = body;
+    const { format, analysis, pageCount } = body;
+    const fileName = String(body.fileName ?? "report").replace(/[^a-zA-Z0-9._\- ]/g, "_");
 
     if (!analysis || !format) {
       return NextResponse.json({ error: "Format and analysis data required" }, { status: 400 });

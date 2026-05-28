@@ -40,7 +40,7 @@ function ContractItem({
       } ${
         isActive
           ? "bg-blue-450/10 ring-1 ring-blue-450"
-          : "hover:bg-gray-100"
+          : "hover:bg-bg-muted"
       } ${isSelected ? "bg-blue-450/10 ring-1 ring-blue-450" : ""}`}
     >
       {isCompareMode && (
@@ -116,9 +116,11 @@ export function ContractSidebar({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeContract(contract.id);
+                    if (window.confirm("Delete this contract and its analysis?")) {
+                      removeContract(contract.id);
+                    }
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center text-placeholder hover:text-coral-dark hover:bg-coral-light transition-colors opacity-0 group-hover/item:opacity-100"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center text-slate/40 hover:text-coral-dark hover:bg-coral-light transition-colors"
                   aria-label="Remove contract"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

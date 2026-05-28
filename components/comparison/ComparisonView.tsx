@@ -9,9 +9,11 @@ import { ComparisonMatrix } from "@/components/comparison/ComparisonMatrix";
 interface ComparisonViewProps {
   comparison: ComparisonResult;
   onBack: () => void;
+  onSwitchMode?: (mode: "side-by-side" | "matrix") => void;
+  isSwitching?: boolean;
 }
 
-export function ComparisonView({ comparison, onBack }: ComparisonViewProps) {
+export function ComparisonView({ comparison, onBack, onSwitchMode, isSwitching }: ComparisonViewProps) {
   const { contracts } = useContractStore();
 
   const contractNames = comparison.contractIds.map((id) => {
@@ -20,7 +22,7 @@ export function ComparisonView({ comparison, onBack }: ComparisonViewProps) {
   });
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-bg">
       {/* Header */}
       <div className="bg-surface border-b border-border px-6 py-4 flex items-center gap-4">
         <button
@@ -32,13 +34,25 @@ export function ComparisonView({ comparison, onBack }: ComparisonViewProps) {
           </svg>
           Back
         </button>
-        <div>
+        <div className="flex-1">
           <h2 className="text-feature text-near-black">Contract Comparison</h2>
           <p className="text-small text-placeholder mt-0.5">
             {comparison.mode === "side-by-side" ? "Side-by-side" : "Matrix"} &middot;{" "}
             {contractNames.join(" vs ")}
           </p>
         </div>
+        {onSwitchMode && comparison.contractIds.length === 2 && (
+          <button
+            onClick={() => onSwitchMode(comparison.mode === "side-by-side" ? "matrix" : "side-by-side")}
+            disabled={isSwitching}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-button)] border border-border text-caption text-slate hover:border-blue-450 hover:text-blue-450 transition-colors disabled:opacity-50"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            {isSwitching ? "Switching…" : `Switch to ${comparison.mode === "side-by-side" ? "Matrix" : "Side-by-side"}`}
+          </button>
+        )}
       </div>
 
       <div className="p-6">

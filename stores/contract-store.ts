@@ -31,6 +31,7 @@ const initialSettings: AppSettings = {
   geminiApiKey: "",
   outputLanguage: "English",
   disclaimerAcknowledged: false,
+  darkMode: false,
 };
 
 const storeImpl = create<ContractStore>()(
@@ -73,11 +74,12 @@ const storeImpl = create<ContractStore>()(
 
       addChatMessage: (contractId, message) =>
         set((state) => ({
-          contracts: state.contracts.map((c) =>
-            c.id === contractId
-              ? { ...c, chat: { ...c.chat, messages: [...c.chat.messages, message] } }
-              : c
-          ),
+          contracts: state.contracts.map((c) => {
+            if (c.id !== contractId) return c;
+            const messages = [...c.chat.messages, message];
+            const capped = messages.length > 50 ? messages.slice(-50) : messages;
+            return { ...c, chat: { ...c.chat, messages: capped } };
+          }),
         })),
 
       setSuggestedQuestions: (contractId, questions) =>
@@ -119,7 +121,17 @@ const storeImpl = create<ContractStore>()(
           try { return localStorage.getItem(key); } catch { return null; }
         },
         setItem: (key: string, value: string) => {
-          try { localStorage.setItem(key, value); } catch { /* quota exceeded — silently skip */ }
+          try {
+            localStorage.setItem(key, value);
+          } catch {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(
+                new CustomEvent("storage-quota-exceeded", {
+                  detail: "Storage is full. Your data is safe in this session but may not persist after reload. Consider removing old contracts.",
+                })
+              );
+            }
+          }
         },
         removeItem: (key: string) => {
           try { localStorage.removeItem(key); } catch { /* ignore */ }
@@ -137,7 +149,7 @@ const storeImpl = create<ContractStore>()(
           chunks: [],
         })),
         comparisons: state.comparisons,
-        settings: state.settings,
+        settings: { ...state.settings, geminiApiKey: "" },
         activeContractId: state.activeContractId,
       }),
     }

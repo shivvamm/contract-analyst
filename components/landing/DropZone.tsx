@@ -3,19 +3,24 @@
 import React, { useCallback, useRef, useState } from "react";
 
 const SUPPORTED_EXTENSIONS = [".pdf", ".docx", ".png", ".jpg", ".jpeg", ".txt"];
+const MAX_FILE_SIZE_MB = 20;
+const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-function filterSupportedFiles(files: File[]): { supported: File[]; rejected: File[] } {
+function filterSupportedFiles(files: File[]): { supported: File[]; rejected: File[]; tooLarge: File[] } {
   const supported: File[] = [];
   const rejected: File[] = [];
+  const tooLarge: File[] = [];
   for (const file of files) {
     const lower = file.name.toLowerCase();
-    if (SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
-      supported.push(file);
-    } else {
+    if (!SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
       rejected.push(file);
+    } else if (file.size > MAX_FILE_SIZE) {
+      tooLarge.push(file);
+    } else {
+      supported.push(file);
     }
   }
-  return { supported, rejected };
+  return { supported, rejected, tooLarge };
 }
 
 interface DropZoneProps {
@@ -41,13 +46,15 @@ export function DropZone({ onFiles }: DropZoneProps) {
       e.preventDefault();
       setIsDragging(false);
       const allFiles = Array.from(e.dataTransfer.files);
-      const { supported, rejected } = filterSupportedFiles(allFiles);
+      const { supported, rejected, tooLarge } = filterSupportedFiles(allFiles);
+      const warnings: string[] = [];
       if (rejected.length > 0) {
-        const names = rejected.map((f) => f.name).join(", ");
-        window.alert(
-          `Unsupported file${rejected.length > 1 ? "s" : ""}: ${names}. Supported formats: PDF, DOCX, PNG, JPG, TXT.`
-        );
+        warnings.push(`Unsupported file${rejected.length > 1 ? "s" : ""}: ${rejected.map((f) => f.name).join(", ")}. Supported formats: PDF, DOCX, PNG, JPG, TXT.`);
       }
+      if (tooLarge.length > 0) {
+        warnings.push(`File${tooLarge.length > 1 ? "s" : ""} too large (max ${MAX_FILE_SIZE_MB} MB): ${tooLarge.map((f) => f.name).join(", ")}`);
+      }
+      if (warnings.length > 0) window.alert(warnings.join("\n\n"));
       if (supported.length > 0) {
         onFiles(supported);
       }
@@ -58,13 +65,15 @@ export function DropZone({ onFiles }: DropZoneProps) {
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const allFiles = Array.from(e.target.files ?? []);
-      const { supported, rejected } = filterSupportedFiles(allFiles);
+      const { supported, rejected, tooLarge } = filterSupportedFiles(allFiles);
+      const warnings: string[] = [];
       if (rejected.length > 0) {
-        const names = rejected.map((f) => f.name).join(", ");
-        window.alert(
-          `Unsupported file${rejected.length > 1 ? "s" : ""}: ${names}. Supported formats: PDF, DOCX, PNG, JPG, TXT.`
-        );
+        warnings.push(`Unsupported file${rejected.length > 1 ? "s" : ""}: ${rejected.map((f) => f.name).join(", ")}. Supported formats: PDF, DOCX, PNG, JPG, TXT.`);
       }
+      if (tooLarge.length > 0) {
+        warnings.push(`File${tooLarge.length > 1 ? "s" : ""} too large (max ${MAX_FILE_SIZE_MB} MB): ${tooLarge.map((f) => f.name).join(", ")}`);
+      }
+      if (warnings.length > 0) window.alert(warnings.join("\n\n"));
       if (supported.length > 0) {
         onFiles(supported);
       }
@@ -78,25 +87,37 @@ export function DropZone({ onFiles }: DropZoneProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label="Upload contract file"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
       className={`
         relative flex flex-col items-center justify-center gap-4
         border-2 border-dashed rounded-[var(--radius-container)]
         p-12 cursor-pointer transition-all
+        focus:outline-none focus:ring-2 focus:ring-blue-450 focus:ring-offset-2
         ${isDragging
           ? "border-blue-450 bg-blue-450/5"
-          : "border-border bg-gray-50 hover:border-blue-450 hover:bg-blue-450/5"
+          : "border-border bg-bg hover:border-blue-450 hover:bg-blue-450/5"
         }
       `}
     >
       <input
         ref={inputRef}
+        id="contract-file-input"
         type="file"
         multiple
         accept=".pdf,.docx,.png,.jpg,.jpeg,.txt"
+        aria-label="Select contract file to upload"
         className="hidden"
         onChange={handleChange}
       />

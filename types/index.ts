@@ -92,6 +92,7 @@ export interface ContractAnalysis {
   compliance: ComplianceFinding[];
   summary: ContractSummary | null;
   error: string | null;
+  statusMessage?: string | null;
 }
 
 export interface ChatMessage {
@@ -177,6 +178,7 @@ export interface AppSettings {
   geminiApiKey: string;
   outputLanguage: string;
   disclaimerAcknowledged: boolean;
+  darkMode: boolean;
 }
 
 export interface AnalyzeSSEEvent {

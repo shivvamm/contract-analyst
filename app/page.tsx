@@ -46,12 +46,23 @@ export default function Home() {
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
   const [activeComparisonId, setActiveComparisonId] = useState<string | null>(null);
 
-  const { contracts, activeContractId, setActiveContract, comparisons } = useContractStore();
+  const { contracts, activeContractId, setActiveContract, comparisons, settings, updateSettings } = useContractStore();
   const { analyzeFile, analyzeText } = useAnalysis();
   const { compare, isComparing } = useComparison();
 
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
+
   const activeContract = contracts.find((c) => c.id === activeContractId) ?? null;
   const activeComparison = comparisons.find((c) => c.id === activeComparisonId) ?? null;
+
+  useEffect(() => {
+    function onQuota(e: Event) {
+      setStorageWarning((e as CustomEvent).detail);
+      setTimeout(() => setStorageWarning(null), 8000);
+    }
+    window.addEventListener("storage-quota-exceeded", onQuota);
+    return () => window.removeEventListener("storage-quota-exceeded", onQuota);
+  }, []);
 
   // Auto-navigate to analysis view when persisted contracts exist on mount
   useEffect(() => {
@@ -141,6 +152,16 @@ export default function Home() {
     setActiveComparisonId(null);
   }, []);
 
+  // Switch comparison mode
+  const handleSwitchComparisonMode = useCallback(
+    async (mode: "side-by-side" | "matrix") => {
+      if (!activeComparison) return;
+      const id = await compare(activeComparison.contractIds, mode);
+      if (id) setActiveComparisonId(id);
+    },
+    [activeComparison, compare]
+  );
+
   // Switch to analysis view when clicking a contract
   const handleContractSelect = useCallback(
     (id: string) => {
@@ -153,8 +174,26 @@ export default function Home() {
   // ——— LANDING VIEW ———
   if (view === "landing") {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-bg flex flex-col">
         <DisclaimerDialog />
+
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={() => updateSettings({ darkMode: !settings.darkMode })}
+            className="w-9 h-9 flex items-center justify-center rounded-[var(--radius-button)] border border-border text-slate hover:border-blue-450 hover:text-blue-450 transition-colors bg-surface"
+            aria-label={settings.darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {settings.darkMode ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+        </div>
 
         <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
           <div className="w-full max-w-2xl space-y-8">
@@ -179,7 +218,7 @@ export default function Home() {
             <HeroSection />
 
             {/* Tab switcher */}
-            <div className="flex rounded-[var(--radius-button)] bg-gray-100 p-1 w-fit mx-auto">
+            <div className="flex rounded-[var(--radius-button)] bg-bg-muted p-1 w-fit mx-auto">
               <button
                 onClick={() => setLandingTab("upload")}
                 className={`px-5 py-2 rounded-[var(--radius-button)] text-button transition-colors ${
@@ -246,17 +285,33 @@ export default function Home() {
   // ——— COMPARISON VIEW ———
   if (view === "comparison" && activeComparison) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-bg">
         <DisclaimerDialog />
-        <ComparisonView comparison={activeComparison} onBack={handleBackFromComparison} />
+        <ComparisonView
+          comparison={activeComparison}
+          onBack={handleBackFromComparison}
+          onSwitchMode={handleSwitchComparisonMode}
+          isSwitching={isComparing}
+        />
       </div>
     );
   }
 
   // ——— ANALYSIS VIEW ———
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-bg flex flex-col overflow-hidden">
       <DisclaimerDialog />
+
+      {storageWarning && (
+        <div className="bg-orange-light border-b border-yellow-dark/30 px-4 py-2 flex items-center justify-between">
+          <p className="text-caption text-yellow-dark">{storageWarning}</p>
+          <button onClick={() => setStorageWarning(null)} className="text-yellow-dark/60 hover:text-yellow-dark ml-4">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {activeContract && (
         <TopBar
@@ -316,7 +371,7 @@ export default function Home() {
           )}
 
           {activeContract ? (
-            <AnalysisView contract={activeContract} />
+            <AnalysisView contract={activeContract} onBack={() => setView("landing")} />
           ) : (
             <div className="flex flex-col items-center justify-center h-64 gap-4">
               <p className="text-body text-slate">No contract selected.</p>

@@ -1,4 +1,5 @@
 import { Mistral } from "@mistralai/mistralai";
+import { extractJSON } from "@/lib/llm/extract-json";
 
 const MODEL = "mistral-small-latest";
 
@@ -24,16 +25,7 @@ export async function generateJSON<T>(prompt: string, userApiKey?: string): Prom
     throw new Error("Empty response from Mistral");
   }
 
-  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) ||
-    text.match(/\{[\s\S]*\}/) ||
-    text.match(/\[[\s\S]*\]/);
-
-  if (!jsonMatch) {
-    throw new Error("Failed to parse JSON response from Mistral");
-  }
-
-  const jsonStr = jsonMatch[1] || jsonMatch[0];
-  return JSON.parse(jsonStr) as T;
+  return JSON.parse(extractJSON(text)) as T;
 }
 
 export async function* generateStream(prompt: string, userApiKey?: string): AsyncGenerator<string> {

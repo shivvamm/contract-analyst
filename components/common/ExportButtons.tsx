@@ -11,6 +11,7 @@ type ExportFormat = "pdf" | "excel" | "csv";
 
 export function ExportButtons({ contractId }: ExportButtonsProps) {
   const [loading, setLoading] = useState<ExportFormat | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { contracts } = useContractStore();
 
   async function handleExport(format: ExportFormat) {
@@ -45,6 +46,8 @@ export function ExportButtons({ contractId }: ExportButtonsProps) {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Export error:", err);
+      setError("Export failed. Please try again.");
+      setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(null);
     }
@@ -57,13 +60,14 @@ export function ExportButtons({ contractId }: ExportButtonsProps) {
   ];
 
   return (
+    <div className="flex flex-col items-end gap-1">
     <div className="flex items-center gap-2">
       {formats.map(({ key, label }) => (
         <button
           key={key}
           onClick={() => handleExport(key)}
           disabled={loading !== null}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-button)] border border-border text-caption text-slate hover:bg-gray-50 hover:border-blue-450 hover:text-blue-450 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-button)] border border-border text-caption text-slate hover:bg-bg hover:border-blue-450 hover:text-blue-450 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading === key ? (
             <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -78,6 +82,8 @@ export function ExportButtons({ contractId }: ExportButtonsProps) {
           {label}
         </button>
       ))}
+    </div>
+    {error && <p className="text-small text-coral-dark">{error}</p>}
     </div>
   );
 }

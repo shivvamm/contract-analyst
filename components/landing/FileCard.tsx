@@ -82,7 +82,7 @@ export function FileCard({ fileName, fileType, status, progress = 0, onRemove }:
       {onRemove && (
         <button
           onClick={onRemove}
-          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-placeholder hover:text-near-black hover:bg-gray-100 transition-colors"
+          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-placeholder hover:text-near-black hover:bg-bg-muted transition-colors"
           aria-label="Remove file"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

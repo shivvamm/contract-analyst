@@ -79,8 +79,12 @@ export function useAnalysis() {
                   break;
                 }
                 case "progress": {
-                  const d = event.data as { stage: string; percent: number };
-                  updateAnalysis(contractId, { progress: d.percent });
+                  const d = event.data as { stage: string; percent: number; message?: string | null };
+                  const updates: Record<string, unknown> = {};
+                  if (d.percent >= 0) updates.progress = d.percent;
+                  if (d.message) updates.statusMessage = d.message;
+                  else updates.statusMessage = null;
+                  updateAnalysis(contractId, updates);
                   break;
                 }
                 case "extraction": {

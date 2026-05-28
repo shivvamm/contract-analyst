@@ -8,11 +8,16 @@ interface TextPasteTabProps {
 
 export function TextPasteTab({ onSubmit }: TextPasteTabProps) {
   const [text, setText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const trimmed = text.trim();
-    if (trimmed.length > 0) {
-      onSubmit(trimmed);
+    if (trimmed.length === 0 || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit(trimmed);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -23,7 +28,7 @@ export function TextPasteTab({ onSubmit }: TextPasteTabProps) {
         onChange={(e) => setText(e.target.value)}
         placeholder="Paste your contract text here…"
         rows={10}
-        className="w-full rounded-[var(--radius-card)] border border-input-border bg-gray-50 px-4 py-3 text-body text-near-black placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent resize-none transition-colors"
+        className="w-full rounded-[var(--radius-card)] border border-input-border bg-bg px-4 py-3 text-body text-near-black placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-blue-450 focus:border-transparent resize-none transition-colors"
       />
       <div className="flex items-center justify-between">
         <span className="text-small text-placeholder">
@@ -31,10 +36,10 @@ export function TextPasteTab({ onSubmit }: TextPasteTabProps) {
         </span>
         <button
           onClick={handleSubmit}
-          disabled={text.trim().length === 0}
+          disabled={text.trim().length === 0 || isSubmitting}
           className="bg-blue-450 text-surface text-button px-6 py-2.5 rounded-[var(--radius-button)] hover:bg-blue-pressed transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Analyze Text
+          {isSubmitting ? "Analyzing…" : "Analyze Text"}
         </button>
       </div>
     </div>

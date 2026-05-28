@@ -6,6 +6,7 @@ import type { AnalysisStatus } from "@/types";
 interface ProgressBarProps {
   progress: number;
   status: AnalysisStatus;
+  statusMessage?: string | null;
 }
 
 interface Stage {
@@ -35,7 +36,7 @@ function formatTime(seconds: number): string {
   return `${s}s`;
 }
 
-export function ProgressBar({ progress, status }: ProgressBarProps) {
+export function ProgressBar({ progress, status, statusMessage }: ProgressBarProps) {
   const isError = status === "error";
   const isComplete = status === "complete";
   const currentIndex = getStageIndex(status);
@@ -99,7 +100,14 @@ export function ProgressBar({ progress, status }: ProgressBarProps) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-border rounded-full overflow-hidden">
+      <div
+        role="progressbar"
+        aria-valuenow={Math.round(progress)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={currentStage?.label ?? "Analysis progress"}
+        className="h-2 bg-border rounded-full overflow-hidden"
+      >
         <div
           className={`h-full rounded-full transition-all duration-700 ease-out ${
             isError ? "bg-coral-dark" : isComplete ? "bg-success" : "bg-blue-450"
@@ -156,10 +164,15 @@ export function ProgressBar({ progress, status }: ProgressBarProps) {
         })}
       </div>
 
-      {/* Rate limit note */}
-      {!isComplete && !isError && stageElapsed > 15 && (
+      {/* Retry / slow stage note */}
+      {!isComplete && !isError && statusMessage && (
+        <p className="text-small text-yellow-dark italic">
+          {statusMessage}
+        </p>
+      )}
+      {!isComplete && !isError && !statusMessage && stageElapsed > 30 && (
         <p className="text-small text-placeholder italic">
-          Waiting for API rate limit to reset — this is normal on the free tier.
+          This step is taking longer than usual…
         </p>
       )}
     </div>

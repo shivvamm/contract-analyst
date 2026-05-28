@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         controller.enqueue(new TextEncoder().encode(sseEvent("parsing", { rawText, chunks, pageCount, ocrWarning: ocrWarning || null })));
 
         await runPipeline(chunks, language, {
-          onProgress: (stage, percent) => { controller.enqueue(new TextEncoder().encode(sseEvent("progress", { stage, percent }))); },
+          onProgress: (stage, percent, message) => { controller.enqueue(new TextEncoder().encode(sseEvent("progress", { stage, percent, message: message || null }))); },
           onExtraction: (keyTerms) => { controller.enqueue(new TextEncoder().encode(sseEvent("extraction", keyTerms))); },
           onRisks: (risks) => { controller.enqueue(new TextEncoder().encode(sseEvent("risks", risks))); },
           onCompliance: (compliance) => { controller.enqueue(new TextEncoder().encode(sseEvent("compliance", compliance))); },
