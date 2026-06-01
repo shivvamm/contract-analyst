@@ -14,6 +14,7 @@ import { DropZone } from "@/components/landing/DropZone";
 import { FileCard } from "@/components/landing/FileCard";
 import { TextPasteTab } from "@/components/landing/TextPasteTab";
 import { ApiKeyInput } from "@/components/landing/ApiKeyInput";
+import { HowItWorks, AnalysisPreview, FeaturesGrid, ChatPreview, ComparePreview } from "@/components/landing/LandingSections";
 
 // Analysis
 import { AnalysisView } from "@/components/analysis/AnalysisView";
@@ -195,7 +196,8 @@ export default function Home() {
           </button>
         </div>
 
-        <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+        {/* Hero + Upload Section */}
+        <section className="flex-shrink-0 flex flex-col items-center justify-center px-6 pt-20 pb-16">
           <div className="w-full max-w-2xl space-y-8">
             {contracts.length > 0 && (
               <button
@@ -270,14 +272,60 @@ export default function Home() {
 
             {/* API key / settings */}
             <ApiKeyInput />
+          </div>
+        </section>
 
-            {/* Disclaimer footer */}
-            <p className="text-small text-placeholder text-center max-w-md mx-auto">
+        {/* Divider */}
+        <div className="w-full max-w-3xl mx-auto border-t border-border" />
+
+        {/* How It Works */}
+        <section className="px-6 py-20">
+          <HowItWorks />
+        </section>
+
+        <div className="w-full max-w-3xl mx-auto border-t border-border" />
+
+        {/* Analysis Preview Mockups */}
+        <section className="px-6 py-20">
+          <AnalysisPreview />
+        </section>
+
+        <div className="w-full max-w-3xl mx-auto border-t border-border" />
+
+        {/* Chat Preview */}
+        <section className="px-6 py-20">
+          <ChatPreview />
+        </section>
+
+        <div className="w-full max-w-3xl mx-auto border-t border-border" />
+
+        {/* Compare Preview */}
+        <section className="px-6 py-20">
+          <ComparePreview />
+        </section>
+
+        <div className="w-full max-w-3xl mx-auto border-t border-border" />
+
+        {/* Features Grid */}
+        <section className="px-6 py-20">
+          <FeaturesGrid />
+        </section>
+
+        {/* Footer */}
+        <footer className="px-6 py-12 border-t border-border">
+          <div className="max-w-4xl mx-auto text-center space-y-4">
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="bg-blue-450 text-surface text-button px-8 py-3 rounded-[var(--radius-button)] hover:bg-blue-pressed transition-colors"
+            >
+              Get Started — It&apos;s Free
+            </button>
+            <p className="text-small text-placeholder max-w-md mx-auto">
               This tool provides AI-generated analysis for informational purposes only.
               It is not legal advice. Always consult a qualified attorney.
             </p>
           </div>
-        </main>
+        </footer>
       </div>
     );
   }
