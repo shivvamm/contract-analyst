@@ -11,6 +11,7 @@ export function getProvider(): LLMProvider {
   return "gemini";
 }
 
+
 export async function generateJSON<T>(prompt: string, userApiKey?: string): Promise<T> {
   const provider = getProvider();
   if (provider === "groq") {

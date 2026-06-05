@@ -13,6 +13,7 @@ interface ContractStore {
   comparisons: ComparisonResult[];
   activeContractId: string | null;
   settings: AppSettings;
+  apiSettingsOpen: boolean;
 
   addContract: (contract: Contract) => void;
   removeContract: (id: string) => void;
@@ -24,6 +25,7 @@ interface ContractStore {
   addComparison: (comparison: ComparisonResult) => void;
   removeComparison: (id: string) => void;
   updateSettings: (updates: Partial<AppSettings>) => void;
+  setApiSettingsOpen: (open: boolean) => void;
   reset: () => void;
 }
 
@@ -42,6 +44,7 @@ const storeImpl = create<ContractStore>()(
       comparisons: [],
       activeContractId: null,
       settings: initialSettings,
+      apiSettingsOpen: false,
 
       addContract: (contract) =>
         set((state) => ({
@@ -106,6 +109,8 @@ const storeImpl = create<ContractStore>()(
         set((state) => ({
           settings: { ...state.settings, ...updates },
         })),
+
+      setApiSettingsOpen: (open) => set({ apiSettingsOpen: open }),
 
       reset: () =>
         set({

@@ -15,7 +15,7 @@ import type {
 } from "@/types";
 
 export function useAnalysis() {
-  const { addContract, updateAnalysis, updateContract, setSuggestedQuestions, settings } =
+  const { addContract, updateAnalysis, updateContract, setSuggestedQuestions, settings, apiSettingsOpen } =
     useContractStore();
 
   const abortRef = useRef<AbortController | null>(null);
@@ -181,7 +181,9 @@ export function useAnalysis() {
 
   const analyzeFile = useCallback(
     async (file: File): Promise<void> => {
-      // Block upload if user entered a key that failed verification
+      if (apiSettingsOpen) {
+        throw new Error("Please save your API key settings before uploading.");
+      }
       if (settings.geminiApiKey && settings.geminiKeyVerified === false) {
         throw new Error("Your Gemini API key is invalid. Please fix it in Settings before uploading.");
       }
@@ -232,6 +234,9 @@ export function useAnalysis() {
 
   const analyzeText = useCallback(
     async (text: string): Promise<void> => {
+      if (apiSettingsOpen) {
+        throw new Error("Please save your API key settings before analyzing.");
+      }
       if (settings.geminiApiKey && settings.geminiKeyVerified === false) {
         throw new Error("Your Gemini API key is invalid. Please fix it in Settings before analyzing.");
       }

@@ -47,11 +47,12 @@ export default function Home() {
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
   const [activeComparisonId, setActiveComparisonId] = useState<string | null>(null);
 
-  const { contracts, activeContractId, setActiveContract, comparisons, settings, updateSettings } = useContractStore();
+  const { contracts, activeContractId, setActiveContract, comparisons, settings, updateSettings, apiSettingsOpen } = useContractStore();
   const { analyzeFile, analyzeText } = useAnalysis();
   const { compare, isComparing } = useComparison();
 
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [uploadBlockedMsg, setUploadBlockedMsg] = useState<string | null>(null);
 
   const activeContract = contracts.find((c) => c.id === activeContractId) ?? null;
   const activeComparison = comparisons.find((c) => c.id === activeComparisonId) ?? null;
@@ -80,6 +81,12 @@ export default function Home() {
   // Handle files dropped/selected
   const handleFiles = useCallback(
     async (files: File[]) => {
+      if (apiSettingsOpen) {
+        setUploadBlockedMsg("Save or close your API key settings before uploading.");
+        setTimeout(() => setUploadBlockedMsg(null), 4000);
+        return;
+      }
+
       const items: UploadItem[] = files.map((file) => ({
         file,
         status: "queued" as const,
@@ -101,7 +108,7 @@ export default function Home() {
               qi.file === item.file ? { ...qi, status: "complete", progress: 100 } : qi
             )
           );
-        } catch {
+        } catch (err) {
           setUploadQueue((q) =>
             q.map((qi) =>
               qi.file === item.file ? { ...qi, status: "error", progress: 0 } : qi
@@ -110,12 +117,17 @@ export default function Home() {
         }
       }
     },
-    [analyzeFile]
+    [analyzeFile, apiSettingsOpen]
   );
 
   // Handle text paste submit
   const handleTextSubmit = useCallback(
     async (text: string) => {
+      if (apiSettingsOpen) {
+        setUploadBlockedMsg("Save or close your API key settings before analyzing.");
+        setTimeout(() => setUploadBlockedMsg(null), 4000);
+        return;
+      }
       setView("analysis");
       try {
         await analyzeText(text);
@@ -123,7 +135,7 @@ export default function Home() {
         // error handled in store
       }
     },
-    [analyzeText]
+    [analyzeText, apiSettingsOpen]
   );
 
   // Toggle compare selection
@@ -242,6 +254,16 @@ export default function Home() {
                 Paste Text
               </button>
             </div>
+
+            {/* Blocked upload message */}
+            {uploadBlockedMsg && (
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-orange-light border border-yellow-dark/30 rounded-[var(--radius-card)] text-caption text-yellow-dark">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+                {uploadBlockedMsg}
+              </div>
+            )}
 
             {/* Tab content */}
             {landingTab === "upload" ? (
