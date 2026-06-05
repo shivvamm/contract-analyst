@@ -172,25 +172,33 @@ export async function ocrPdfPages(
   let totalConfidence = 0;
   let pagesOcrd = 0;
 
-  // 200 DPI: PDF default is 72 DPI, so scale = 200/72 ~ 2.78
-  const scale = 200 / 72;
+  // 120 DPI: good enough for Tesseract, much faster render than 200 DPI
+  const scale = 120 / 72;
 
-  for (let i = 1; i <= pdfDoc.numPages; i++) {
-    const pngBuffer = await renderPdfPageToPng(canvasMod, pdfDoc, i, scale);
+  const BATCH_SIZE = 4;
 
-    if (pngBuffer) {
-      try {
-        const {
-          data: { text, confidence },
-        } = await Tesseract.recognize(pngBuffer, "eng");
-        pageTexts.push(`[PAGE ${i}]\n${text.trim()}`);
-        totalConfidence += confidence;
-        pagesOcrd++;
-      } catch {
-        pageTexts.push(`[PAGE ${i}]\n[OCR failed for this page]`);
-      }
-    } else {
-      pageTexts.push(`[PAGE ${i}]\n[Rendering failed for this page]`);
+  for (let batch = 0; batch < pdfDoc.numPages; batch += BATCH_SIZE) {
+    const batchPages = Array.from(
+      { length: Math.min(BATCH_SIZE, pdfDoc.numPages - batch) },
+      (_, j) => batch + j + 1
+    );
+
+    const batchResults = await Promise.all(
+      batchPages.map(async (i) => {
+        const pngBuffer = await renderPdfPageToPng(canvasMod, pdfDoc, i, scale);
+        if (!pngBuffer) return { i, text: "[Rendering failed for this page]", confidence: 0 };
+        try {
+          const { data: { text, confidence } } = await Tesseract.recognize(pngBuffer, "eng");
+          return { i, text: text.trim(), confidence };
+        } catch {
+          return { i, text: "[OCR failed for this page]", confidence: 0 };
+        }
+      })
+    );
+
+    for (const { i, text, confidence } of batchResults) {
+      pageTexts.push(`[PAGE ${i}]\n${text}`);
+      if (confidence > 0) { totalConfidence += confidence; pagesOcrd++; }
     }
   }
 

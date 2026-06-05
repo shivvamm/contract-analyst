@@ -28,7 +28,7 @@ export async function parsePdf(buffer: Buffer): Promise<PdfParseResult> {
   }
 
   const rawText = pageTexts.join("\n\n");
-  const hasExtractableText = rawText.replace(/\[PAGE \d+\]/g, "").trim().length > 50;
+  const hasExtractableText = rawText.replace(/\[PAGE \d+\]/g, "").trim().length > 10;
 
   return { rawText, pageCount: data.numpages, hasExtractableText };
 }
