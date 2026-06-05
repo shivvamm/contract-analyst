@@ -1,0 +1,23 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue rounded background -->
+  <rect width="32" height="32" rx="8" fill="#5b76fe"/>
+
+  <!-- Document body -->
+  <rect x="7" y="5" width="14" height="18" rx="2" fill="white" opacity="0.18"/>
+
+  <!-- Folded corner -->
+  <path d="M17 5h4v4h-4V5z" fill="white" opacity="0.1"/>
+  <path d="M17 5l4 4h-4V5z" fill="white" opacity="0.25"/>
+
+  <!-- Document lines -->
+  <rect x="9.5" y="11" width="9" height="1.5" rx="0.75" fill="white" opacity="0.9"/>
+  <rect x="9.5" y="14" width="7" height="1.5" rx="0.75" fill="white" opacity="0.9"/>
+  <rect x="9.5" y="17" width="8" height="1.5" rx="0.75" fill="white" opacity="0.9"/>
+
+  <!-- Green check circle -->
+  <circle cx="22" cy="22" r="7" fill="#1c1c1e"/>
+  <circle cx="22" cy="22" r="6" fill="#00b473"/>
+
+  <!-- Checkmark -->
+  <path d="M19.5 22.2l1.8 1.8 3.2-3.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
