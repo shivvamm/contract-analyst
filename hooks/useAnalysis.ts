@@ -181,6 +181,11 @@ export function useAnalysis() {
 
   const analyzeFile = useCallback(
     async (file: File): Promise<void> => {
+      // Block upload if user entered a key that failed verification
+      if (settings.geminiApiKey && settings.geminiKeyVerified === false) {
+        throw new Error("Your Gemini API key is invalid. Please fix it in Settings before uploading.");
+      }
+
       // Abort any in-progress analysis
       abortRef.current?.abort();
       const controller = new AbortController();
@@ -227,6 +232,9 @@ export function useAnalysis() {
 
   const analyzeText = useCallback(
     async (text: string): Promise<void> => {
+      if (settings.geminiApiKey && settings.geminiKeyVerified === false) {
+        throw new Error("Your Gemini API key is invalid. Please fix it in Settings before analyzing.");
+      }
       // Abort any in-progress analysis
       abortRef.current?.abort();
       const controller = new AbortController();

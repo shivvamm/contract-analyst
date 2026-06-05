@@ -29,6 +29,7 @@ interface ContractStore {
 
 const initialSettings: AppSettings = {
   geminiApiKey: "",
+  geminiKeyVerified: null,
   outputLanguage: "English",
   disclaimerAcknowledged: false,
   darkMode: false,

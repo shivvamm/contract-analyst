@@ -1,7 +1,7 @@
 import { Mistral } from "@mistralai/mistralai";
 import { extractJSON } from "@/lib/llm/extract-json";
 
-const MODEL = "mistral-small-latest";
+const MODEL = "mistral-small-2506";
 
 function getMistralClient(userApiKey?: string): Mistral {
   const apiKey = userApiKey || process.env.MISTRAL_API_KEY;

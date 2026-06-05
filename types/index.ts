@@ -176,6 +176,7 @@ export interface MatrixCell {
 
 export interface AppSettings {
   geminiApiKey: string;
+  geminiKeyVerified: boolean | null; // null = unchecked, true = valid, false = invalid
   outputLanguage: string;
   disclaimerAcknowledged: boolean;
   darkMode: boolean;
