@@ -66,34 +66,33 @@ export async function runPipeline(
 
   if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 
-  // Pass 2: Risk Analysis
-  const risksResult = await retryable(
-    () => generateJSON<{ risks: Risk[] }>(buildRiskPrompt(chunks, language), userApiKey),
-    retries,
-    retryNotify("analyzing-risks"),
-  );
+  const keyTermsJson = JSON.stringify(keyTerms);
+
+  // Pass 2 + 3: Risks and Compliance run in parallel (independent of each other)
+  const [risksResult, complianceResult] = await Promise.all([
+    retryable(
+      () => generateJSON<{ risks: Risk[] }>(buildRiskPrompt(chunks, language), userApiKey),
+      retries,
+      retryNotify("analyzing-risks"),
+    ),
+    retryable(
+      () => generateJSON<{ compliance: ComplianceFinding[] }>(
+        buildCompliancePrompt(chunks, keyTermsJson, language), userApiKey
+      ),
+      retries,
+      retryNotify("checking-compliance"),
+    ),
+  ]);
 
   const risks = Array.isArray(risksResult?.risks) ? risksResult.risks : [];
   callbacks.onRisks(risks);
   callbacks.onProgress("checking-compliance", 50);
 
-  if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
-
-  const keyTermsJson = JSON.stringify(keyTerms);
-  const risksJson = JSON.stringify(risks);
-
-  // Pass 3: Compliance Check
-  const complianceResult = await retryable(
-    () => generateJSON<{ compliance: ComplianceFinding[] }>(
-      buildCompliancePrompt(chunks, keyTermsJson, language), userApiKey
-    ),
-    retries,
-    retryNotify("checking-compliance"),
-  );
-
   const compliance = Array.isArray(complianceResult?.compliance) ? complianceResult.compliance : [];
   callbacks.onCompliance(compliance);
   callbacks.onProgress("summarizing", 70);
+
+  const risksJson = JSON.stringify(risks);
 
   if (usingFreeTier && freeTierDelay > 0) await delay(freeTierDelay);
 

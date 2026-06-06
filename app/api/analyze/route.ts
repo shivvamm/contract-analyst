@@ -3,6 +3,8 @@ import { parseFile, parseTextInput } from "@/lib/parsers";
 import { chunkText } from "@/lib/gemini/chunker";
 import { runPipeline } from "@/lib/pipeline/orchestrator";
 
+export const maxDuration = 300;
+
 function sseEvent(type: string, data: unknown): string {
   return `data: ${JSON.stringify({ type, data })}\n\n`;
 }
