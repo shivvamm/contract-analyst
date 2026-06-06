@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import type { Contract } from "@/types";
+import type { Contract, AnalysisStatus } from "@/types";
 import { ProgressBar } from "@/components/analysis/ProgressBar";
 import { OverviewStrip } from "@/components/analysis/OverviewStrip";
 import { SummaryPanel } from "@/components/analysis/SummaryPanel";
@@ -34,6 +34,20 @@ function SkeletonCard() {
       </div>
     </div>
   );
+}
+
+const STATUS_ORDER: AnalysisStatus[] = [
+  "idle",
+  "parsing",
+  "extracting",
+  "analyzing-risks",
+  "checking-compliance",
+  "summarizing",
+  "complete",
+];
+
+function isPast(current: AnalysisStatus, step: AnalysisStatus): boolean {
+  return STATUS_ORDER.indexOf(current) > STATUS_ORDER.indexOf(step);
 }
 
 export function AnalysisView({ contract, onBack }: AnalysisViewProps) {
@@ -158,7 +172,7 @@ export function AnalysisView({ contract, onBack }: AnalysisViewProps) {
           ref={(el) => { sectionRefs.current.summary = el; }}
           data-section="summary"
         >
-          {analysis.summary ? (
+          {isPast(analysis.status, "summarizing") && analysis.summary ? (
             <SummaryPanel summary={analysis.summary} />
           ) : (
             isProcessing && <SkeletonCard />
@@ -170,7 +184,7 @@ export function AnalysisView({ contract, onBack }: AnalysisViewProps) {
           ref={(el) => { sectionRefs.current.risks = el; }}
           data-section="risks"
         >
-          {analysis.risks.length > 0 || isComplete ? (
+          {isPast(analysis.status, "analyzing-risks") && (analysis.risks.length > 0 || isComplete) ? (
             <RiskPanel risks={analysis.risks} />
           ) : (
             isProcessing && <SkeletonCard />
@@ -182,7 +196,7 @@ export function AnalysisView({ contract, onBack }: AnalysisViewProps) {
           ref={(el) => { sectionRefs.current.terms = el; }}
           data-section="terms"
         >
-          {analysis.keyTerms ? (
+          {isPast(analysis.status, "extracting") && analysis.keyTerms ? (
             <KeyTermsPanel keyTerms={analysis.keyTerms} />
           ) : (
             isProcessing && <SkeletonCard />
@@ -195,7 +209,7 @@ export function AnalysisView({ contract, onBack }: AnalysisViewProps) {
           ref={(el) => { sectionRefs.current.compliance = el; }}
           data-section="compliance"
         >
-          {analysis.compliance.length > 0 || isComplete ? (
+          {isPast(analysis.status, "checking-compliance") && (analysis.compliance.length > 0 || isComplete) ? (
             <CompliancePanel findings={analysis.compliance} />
           ) : (
             isProcessing && <SkeletonCard />
